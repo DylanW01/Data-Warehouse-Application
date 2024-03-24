@@ -7,7 +7,7 @@
   <h3 align="center">Data Warehouse App</h3>
 
   <p align="center">
-    An Angular web app to view reports of the library system.
+    An Angular web app to view reports l;l;l;lof the library system.
     <br />
     <em>Built with: Angular Web-App, Node.js Express API, Oracle Database</em>
     <br />
