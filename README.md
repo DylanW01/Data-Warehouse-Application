@@ -18,7 +18,7 @@
     ·
     <a href="https://datawarehouseapi.dylanwarrell.com/swagger">Open API Testing Site</a>
     ·
-    <a href="https://github.com/DylanW01/Data-Warehouse-Application/actions">Report a Problem</a>
+    <a href="https://github.com/DylanW01/Data-Warehouse-Application/issues">Report a Problem</a>
   </p>
 
 </div>
