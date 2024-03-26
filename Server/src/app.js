@@ -68,7 +68,11 @@ const swaggerSpec = swaggerJSDoc(options);
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 //#endregion
 
-  //#region Operational DB Queries
+app.get('/ping', function (req, res) {
+  res.status(200).json({status: 'success', message: 'pong'});
+  });
+
+//#region Operational DB Queries
   app.get('/users', async function (req, res) {
     try {
       var token = req.headers.authorization.split(' ')[1];
