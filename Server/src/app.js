@@ -119,7 +119,17 @@ app.get('/ping', function (req, res) {
       var decoded = jwt.verify(token, process.env.JWTSECRET);
       let connection = await operationalDB.getConnection();
       connection.execute(
-        'SELECT b.BOOK_ID BOOK_ID, b.TITLE TITLE, b.AUTHOR_ID AUTHOR_ID, b.ISBN ISBN, b.PAGES PAGES, b.CREATED CREATED, b.ON_LOAN ON_LOAN, a.FIRST_NAME FIRST_NAME, a.LAST_NAME LAST_NAME FROM BOOKS b inner join authors a ON a.author_id = b.author_id',
+        `SELECT b.BOOK_ID BOOK_ID,
+        b.TITLE TITLE,
+        b.AUTHOR_ID AUTHOR_ID,
+        b.ISBN ISBN,
+        b.PAGES PAGES,
+        b.CREATED CREATED,
+        b.ON_LOAN ON_LOAN,
+        a.FIRST_NAME FIRST_NAME,
+        a.LAST_NAME LAST_NAME
+        FROM BOOKS b
+        inner join authors a ON a.author_id = b.author_id`,
         {}, // no bind variables
         { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
         (err, result) => {
@@ -254,7 +264,7 @@ app.get('/ping', function (req, res) {
     
         // Create a JWT token and send it to the client along with the user details
         payload = {
-          iss: 'localhost',
+          iss: 'datawarehouseapi.dylanwarrell.com',
           sub: user.USERNAME,
           role_id: user.ROLE_ID
         };
