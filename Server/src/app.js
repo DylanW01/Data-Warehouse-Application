@@ -60,7 +60,7 @@ const swaggerDefinition = {
     version: appVersion,
     contact: {
       name: "Dylan Warrell",
-      email: "s4002608@glos.ac.uk",
+      email: "hello@dylanwarreell.com",
       url: "https://dylanwarrell.com"
     }
   },
