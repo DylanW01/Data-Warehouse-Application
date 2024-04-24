@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/app.js",
   "scripts": {
-    "run dev server": "nodemon src/app.js",
-    "run server": "node src/app.js",
+    "dev-server": "nodemon src/app.js",
+    "server": "node src/app.js",
     "version-patch": "npm --no-git-tag-version version patch",
     "version-minor": "npm version minor",
     "version-major": "npm version major"
