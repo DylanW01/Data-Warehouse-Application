@@ -28,6 +28,39 @@
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     loginResponse:
+ *       type: object
+ *       properties:
+ *         user:
+ *           type: object
+ *           properties:
+ *             USER_ID:
+ *               type: integer
+ *             USERNAME:
+ *               type: string
+ *             NAME:
+ *               type: string
+ *             ROLE_ID:
+ *               type: integer
+ *             ROLE_NAME:
+ *               type: string
+ *           example:
+ *             USER_ID: 1
+ *             USERNAME: VC
+ *             NAME: Vice Chancellor
+ *             ROLE_ID: 1
+ *             ROLE_NAME: Vice Chancellor
+ *         token:
+ *           type: string
+ *           description: Access token
+ *           example: "abcde12345"
+ */
+
+
+/**
+ * @swagger
  * tags:
  *   name: User Accounts
  *   description: Account management
@@ -47,7 +80,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/loginResponse'
  *       401:
  *         description: Invalid username or password
  *       500:
