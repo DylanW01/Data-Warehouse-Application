@@ -83,6 +83,12 @@ app.get('/FineSumByDate', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 3) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -107,6 +113,12 @@ app.get('/LateFineSumByDate', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 3) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -133,6 +145,12 @@ app.get('/PopularBooksByMonth', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 4) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -157,6 +175,12 @@ app.get('/ActiveCoursesByMonth', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 4) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -181,6 +205,12 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 4) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -207,6 +237,12 @@ app.get('/MostPopularBooksByPageCount', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 2) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -231,6 +267,12 @@ app.get('/MostActiveStudentsByMonth', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 2) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -257,6 +299,12 @@ app.get('/MostActiveDepartmentByMonth', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 1) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
@@ -281,6 +329,12 @@ app.get('/TotalIncomeFromFinesByDate', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
+    // Check if decoded.role_id is equal to role for RBAC
+    if (decoded.role_id !== 1) {
+      console.log(`Access denied for user ${decoded.sub}. Role ID: ${decoded.role_id}`);
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
     let connection = await warehouseDB.getConnection();
     connection.execute(
       ``,
