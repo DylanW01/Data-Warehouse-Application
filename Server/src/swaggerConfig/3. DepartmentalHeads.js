@@ -3,28 +3,28 @@
  * tags:
  *   name: Departmental Heads
  *   description: Queries for the Departmental Heads
- * /query3:
+ * /MostPopularBooksByGenre:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Summary of the query
+ *     summary: Lists books of a specific genre that are loaned most and may require more stock
  *     tags: [Departmental Heads]
  *     responses:
  *       200:
- *         description: Summary of the query
+ *         description: List of books
  *         content:
  *           application/json:
  *             schema:
  *               type: array
- * /query4:
+ * /MostActiveStudentsByMonth:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Summary of the query
+ *     summary: Lists the students that are using the library services the most each month
  *     tags: [Departmental Heads]
  *     responses:
  *       200:
- *         description: Summary of the query
+ *         description: List of students
  *         content:
  *           application/json:
  *             schema:

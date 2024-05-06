@@ -3,28 +3,28 @@
  * tags:
  *   name: Finance Director
  *   description: Queries for the Finance Director
- * /query5:
+ * /FineSumByDate:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Summary of the query
+ *     summary: Lists the issued fines, sorted by amount, for the selected timeframe.
  *     tags: [Finance Director]
  *     responses:
  *       200:
- *         description: Summary of the query
+ *         description: List of fines.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
- * /query6:
+ * /LateFineSumByDate:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Summary of the query
+ *     summary: Calculates the sum of fines for late returns in the selected timeframe.
  *     tags: [Finance Director]
  *     responses:
  *       200:
- *         description: Summary of the query
+ *         description: Sum of the fines.
  *         content:
  *           application/json:
  *             schema:
