@@ -53,6 +53,10 @@
  *           application/json:
  *             schema:
  *               type: array
+ *       403:
+ *         description: Unauthorised. User does not have permissions to call this query.
+ *       401:
+ *         description: Unauthorised. Access token required.
  * /LateFineSumByDate:
  *   get:
  *     security:
@@ -103,4 +107,8 @@
  *           application/json:
  *             schema:
  *               type: array
+ *       403:
+ *         description: Unauthorised. User does not have permissions to call this query.
+ *       401:
+ *         description: Unauthorised. Access token required.
  */
