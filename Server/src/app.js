@@ -457,32 +457,72 @@ app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async 
   }
 });
 
-app.get('/TotalIncomeFromFinesByDate', async function (req, res) {
+app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 1) {
-      console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
+      console.log(`Access denied for user ${decoded.sub} at /TotalIncomeFromFinesByDate. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account.` });
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = req.params.year;
+    let timeframe = req.params.timeframe;
+    let value = req.params.value;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      console.log(`/TotalIncomeFromFinesByDate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT COUNT(DISTINCT l.loan_id) AS number_of_loans,
+        SUM(CASE WHEN l.fine_paid_date IS NOT NULL THEN l.fine_amount ELSE 0 END) AS total_fines_income
+        FROM Fact_Loans l
+        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+        WHERE d.Year = :year`,
+        { year: year }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows[0]);
         }
-        console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT COUNT(DISTINCT l.loan_id) AS number_of_loans,
+        SUM(CASE WHEN l.fine_paid_date IS NOT NULL THEN l.fine_amount ELSE 0 END) AS total_fines_income
+        FROM Fact_Loans l
+        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+        WHERE UPPER(d.${timeframe}) = UPPER(:value)
+        AND d.Year = :year`,
+        { year: year, value: value }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows[0]);
+        }
+      );
+    }
     connection.release();
   } catch (err) {
+    console.error(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
