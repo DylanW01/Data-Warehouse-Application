@@ -230,7 +230,7 @@ app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', asy
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 1) {
+    if (decoded.role_id !== 4) {
       console.log(`Access denied for user ${decoded.sub} at /PopularBooksByMonth. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -406,32 +406,90 @@ app.get('/MostPopularBooksByPageCount', async function (req, res) {
   }
 });
 
-app.get('/MostActiveStudentsByMonth', async function (req, res) {
+app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 2) {
-      console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
+      console.log(`Access denied for user ${decoded.sub} at /MostActiveStudentsByMonth. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = req.params.year;
+    let timeframe = req.params.timeframe;
+    let value = req.params.value;
+    let fetchnum = req.params.fetchnum;
+    let course_id = req.params.course_id;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      console.log(`/MostActiveStudentsByMonth endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT u.first_name,
+          u.last_name,
+          COUNT(DISTINCT l.loan_id) AS number_of_loans,
+          COUNT(DISTINCT CASE WHEN l.fine_amount IS NOT NULL THEN l.loan_id END) AS number_of_fines
+          FROM Fact_Loans l
+          JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+          JOIN Dim_Courses c ON l.course_id = c.course_id
+          JOIN Dim_LibraryUsers u ON l.student_id = u.user_id
+          WHERE d.Year = :year
+            AND c.course_id = :course_id
+          GROUP BY u.first_name, u.last_name
+          ORDER BY number_of_loans DESC, number_of_fines DESC
+          FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, course_id: course_id, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/MostActiveStudentsByMonth endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
         }
-        console.log(`/MostActiveStudentsByMonth endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT u.first_name,
+        u.last_name,
+        COUNT(DISTINCT l.loan_id) AS number_of_loans,
+        COUNT(DISTINCT CASE WHEN l.fine_amount IS NOT NULL THEN l.loan_id END) AS number_of_fines
+        FROM Fact_Loans l
+        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+        JOIN Dim_Courses c ON l.course_id = c.course_id
+        JOIN Dim_LibraryUsers u ON l.student_id = u.user_id
+        WHERE d.Year = :year
+          AND c.course_id = :course_id
+          AND UPPER(d.${timeframe}) = UPPER(:value)
+        GROUP BY u.first_name, u.last_name
+        ORDER BY number_of_loans DESC, number_of_fines DESC
+        FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, value: value, course_id: course_id, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/MostActiveStudentsByMonth endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
+        }
+      );
+    }
     connection.release();
   } catch (err) {
+    console.log(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });

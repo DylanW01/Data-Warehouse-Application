@@ -1,5 +1,35 @@
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     MostActiveStudentsByMonthResponse:
+ *       type: object
+ *       properties:
+ *         FIRST_NAME:
+ *           type: string
+ *         LAST_NAME:
+ *           type: string
+ *         NUMBER_OF_LOANS:
+ *           type: integer
+ *         NUMBER_OF_FINES:
+ *           type: integer
+ *       example:
+ *         - FIRST_NAME: William
+ *           LAST_NAME: Taylor
+ *           NUMBER_OF_LOANS: 4
+ *           NUMBER_OF_FINES: 0
+ *         - FIRST_NAME: Charles
+ *           LAST_NAME: Thompson
+ *           NUMBER_OF_LOANS: 5
+ *           NUMBER_OF_FINES: 0
+ *         - FIRST_NAME: John
+ *           LAST_NAME: Doe
+ *           NUMBER_OF_LOANS: 5
+ *           NUMBER_OF_FINES: 2
+ */
+
+/**
+ * @swagger
  * tags:
  *   name: Departmental Heads
  *   description: Queries for the Departmental Heads
@@ -35,38 +65,56 @@
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
  *         description: Unauthorised. Access token required.
- * /MostActiveStudentsByMonth:
+ * /MostActiveStudentsByMonth/{course_id}/{year}/{timeframe}/{value}/{fetchnum}:
  *   get:
  *     security:
  *       - Bearer: []
  *     summary: Lists the students that are using the library services the most each month
  *     tags: [Departmental Heads]
  *     parameters:
+ *       - name: course_id
+ *         in: path
+ *         description: Course to query.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
  *       - name: year
- *         in: query
- *         description: The year for which to retrieve data.
+ *         in: path
+ *         description: Year to query.
  *         required: true
  *         schema:
  *           type: integer
  *           format: int32
- *           minimum: 2018
- *           maximum: 2024
- *       - name: month
- *         in: query
- *         description: The month (1 to 12) for which to retrieve data.
+ *       - name: timeframe
+ *         in: path
+ *         description: Timeframe to query.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Year, Quarter, Month, Week]
+ *       - name: value
+ *         in: path
+ *         description: The value of the timeframe (If selecting "Year", the values must match). E.G. 2023 for Year, 2 for Quarter, June for Month, 24 for Week.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: fetchnum
+ *         in: path
+ *         description: The number of departments to fetch (Top 3 departments, Top 5 departments etc).
  *         required: true
  *         schema:
  *           type: integer
  *           format: int32
- *           minimum: 1
- *           maximum: 12
+ *           minimum: 2
+ *           maximum: 6
  *     responses:
  *       200:
  *         description: List of students
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/MostActiveStudentsByMonthResponse'
  *       403:
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
