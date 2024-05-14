@@ -1,20 +1,20 @@
-import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { MatSidenav } from '@angular/material/sidenav';
+import { BreakpointObserver } from "@angular/cdk/layout";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { Subscription } from "rxjs";
+import { MatSidenav } from "@angular/material/sidenav";
+import { environment } from "src/environments/environment";
 
-const MOBILE_VIEW = 'screen and (max-width: 768px)';
-const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
-const MONITOR_VIEW = 'screen and (min-width: 1024px)';
+const MOBILE_VIEW = "screen and (max-width: 768px)";
+const TABLET_VIEW = "screen and (min-width: 769px) and (max-width: 1024px)";
+const MONITOR_VIEW = "screen and (min-width: 1024px)";
 
 @Component({
-  selector: 'app-full',
-  templateUrl: './full.component.html',
+  selector: "app-full",
+  templateUrl: "./full.component.html",
   styleUrls: [],
 })
 export class FullComponent implements OnInit {
-
-  @ViewChild('leftsidenav')
+  @ViewChild("leftsidenav")
   public sidenav: MatSidenav | any;
 
   //get options from service
@@ -23,22 +23,21 @@ export class FullComponent implements OnInit {
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
+  currentApplicationVersion = environment.appVersion;
 
   get isOver(): boolean {
     return this.isMobileScreen;
   }
 
   constructor(private breakpointObserver: BreakpointObserver) {
-    this.htmlElement = document.querySelector('html')!;
-    this.layoutChangesSubscription = this.breakpointObserver
-      .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW])
-      .subscribe((state) => {
-        // SidenavOpened must be reset true when layout changes
+    this.htmlElement = document.querySelector("html")!;
+    this.layoutChangesSubscription = this.breakpointObserver.observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW]).subscribe((state) => {
+      // SidenavOpened must be reset true when layout changes
 
-        this.isMobileScreen = state.breakpoints[MOBILE_VIEW];
+      this.isMobileScreen = state.breakpoints[MOBILE_VIEW];
 
-        this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
-      });
+      this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
+    });
   }
 
   ngOnInit(): void {}
