@@ -1,9 +1,196 @@
-<!-- ============================================================== -->
-<!-- Simple four boxes Row -->
-<!-- ============================================================== -->
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow theme-card">
+  <mat-card-header>
+    <mat-card-title class="m-b-0">Departmental Heads</mat-card-title>
+    <mat-card-subtitle class="mat-body-1">Queries for the Departmental Heads only. If you are not logged in as this user, requests will be blocked by role-based access control.</mat-card-subtitle>
+  </mat-card-header>
   <mat-card-content>
-    <mat-card-title>Departmental Heads</mat-card-title>
-    <mat-card-subtitle class="mat-body-1">This is test page</mat-card-subtitle>
+    <div class="row">
+      <!-- GetMostPopularBooksByPageCount -->
+      <div class="col-lg-12">
+        <mat-card class="b-1 shadow-none">
+          <mat-card-header>
+            <mat-card-title>Most popular books (by page count)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="b-t-1">
+            <div class="row">
+              <div class="col-lg-5">
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Year</mat-label>
+                      <input matInput type="number" [formControl]="year" required />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Timeframe Value</mat-label>
+                      <input matInput type="number" [formControl]="value" required />
+                      <mat-hint>E.G. 28 for week 28</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field>
+                      <mat-label>Timeframe</mat-label>
+                      <mat-select [(ngModel)]="timeframe" required>
+                        <mat-option value="Year">Year</mat-option>
+                        <mat-option value="Quarter">Quarter</mat-option>
+                        <mat-option value="Month">Month</mat-option>
+                        <mat-option value="Week">Week</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field>
+                      <mat-label>Operator</mat-label>
+                      <mat-select [(ngModel)]="operator" required>
+                        <mat-option value="Greater than">Greater than</mat-option>
+                        <mat-option value="Less than">Less than</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Records to fetch</mat-label>
+                      <input matInput type="number" [formControl]="fetchnum" required />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Page Count</mat-label>
+                      <input matInput type="number" [formControl]="pagecount" required />
+                      <mat-hint>Number of pages to filter above/below</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: left">
+                  <button mat-flat-button color="warn" (click)="resetMostPopularBooksByPageCount()">Clear</button>
+                  <button mat-flat-button color="primary" (click)="callMostPopularBooksByPageCount()">Get Report</button>
+                </div>
+              </div>
+              <div class="col-lg-7">
+                <!-- Results Table -->
+                <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                  <ng-container matColumnDef="title">
+                    <th mat-header-cell *matHeaderCellDef>Title</th>
+                    <td mat-cell *matCellDef="let element">{{ element.TITLE }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="author">
+                    <th mat-header-cell *matHeaderCellDef>Author</th>
+                    <td mat-cell *matCellDef="let element">{{ element.AUTHOR }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="pages">
+                    <th mat-header-cell *matHeaderCellDef>Page count</th>
+                    <td mat-cell *matCellDef="let element">{{ element.PAGES }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="isbn">
+                    <th mat-header-cell *matHeaderCellDef>ISBN</th>
+                    <td mat-cell *matCellDef="let element">{{ element.ISBN }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="loancount">
+                    <th mat-header-cell *matHeaderCellDef># of loans</th>
+                    <td mat-cell *matCellDef="let element">{{ element.NUMBER_OF_LOANS }}</td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- End of GetMostPopularBooksByPageCount -->
+    </div>
+    <div class="row">
+      <!-- GetMostActiveStudents -->
+      <div class="col-lg-12">
+        <mat-card class="b-1 shadow-none">
+          <mat-card-header>
+            <mat-card-title>Most active students</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="b-t-1">
+            <div class="row">
+              <div class="col-lg-5">
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Course ID</mat-label>
+                      <input matInput type="number" [formControl]="courseid1" required />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Year</mat-label>
+                      <input matInput type="number" [formControl]="year1" required />
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Value</mat-label>
+                      <input matInput type="number" [formControl]="value1" required />
+                      <mat-hint>E.G. 28 for week 28</mat-hint>
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Records to fetch</mat-label>
+                      <input matInput type="number" [formControl]="fetchnum1" required />
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: space-around">
+                  <mat-form-field>
+                    <mat-label>Operator</mat-label>
+                    <mat-select [(ngModel)]="timeframe1" required>
+                      <mat-option value="Year">Year</mat-option>
+                      <mat-option value="Quarter">Quarter</mat-option>
+                      <mat-option value="Month">Month</mat-option>
+                      <mat-option value="Week">Week</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <button mat-flat-button color="warn" (click)="resetGetMostActiveStudents()">Clear</button>
+                  <button mat-flat-button color="primary" (click)="callGetMostActiveStudents()">Get Report</button>
+                </div>
+              </div>
+              <div class="col-lg-7">
+                <!-- Results Table -->
+                <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+                  <ng-container matColumnDef="firstname">
+                    <th mat-header-cell *matHeaderCellDef>First name</th>
+                    <td mat-cell *matCellDef="let element">{{ element.FIRST_NAME }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="lastname">
+                    <th mat-header-cell *matHeaderCellDef>Last name</th>
+                    <td mat-cell *matCellDef="let element">{{ element.LAST_NAME }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="loans">
+                    <th mat-header-cell *matHeaderCellDef>Loans count</th>
+                    <td mat-cell *matCellDef="let element">{{ element.NUMBER_OF_LOANS }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="fines">
+                    <th mat-header-cell *matHeaderCellDef>Fines count</th>
+                    <td mat-cell *matCellDef="let element">{{ element.NUMBER_OF_FINES }}</td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns1"></tr>
+                </table>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- End of GetMostActiveStudents -->
+    </div>
   </mat-card-content>
 </mat-card>
