@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, Input, ViewEncapsulation } from "@angu
 import { MatDialog } from "@angular/material/dialog";
 import { DataAccessService } from "src/app/services/data-access.service";
 import { Observable } from "rxjs"; // Import Observable
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-header",
@@ -17,5 +18,10 @@ export class HeaderComponent {
 
   showFiller = false;
 
-  constructor(public dialog: MatDialog, private api: DataAccessService) {}
+  constructor(public dialog: MatDialog, private api: DataAccessService, public router: Router) {}
+
+  logout() {
+    this.api.deleteSessionTokenCookie();
+    this.router.navigate(["/authentication", "login"]);
+  }
 }

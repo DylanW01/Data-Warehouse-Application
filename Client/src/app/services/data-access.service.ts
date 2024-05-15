@@ -28,6 +28,8 @@ export class DataAccessService {
     return this.request("POST", `${environment.serverUrl}/login`, credentials);
   }
 
+  // Authentication with JWT token
+
   getUserTokenFromCookie() {
     const cookie = document.cookie.split("; ").find((row) => row.startsWith("session_token"));
     if (!cookie) {
@@ -51,10 +53,16 @@ export class DataAccessService {
     return JSON.parse(jsonPayload);
   }
 
-  setCookie(name: string, value: string) {
+  setCookieToken(value: string) {
     const expirationDate = new Date();
     expirationDate.setTime(expirationDate.getTime() + 60 * 60 * 1000); // 1 hour in milliseconds
     const cookieValue = encodeURIComponent(value) + `; expires=${expirationDate.toUTCString()}; Secure`;
-    document.cookie = `${name}=${cookieValue}; path=/`;
+    document.cookie = `session_token=${cookieValue}; path=/`;
+  }
+
+  deleteSessionTokenCookie() {
+    const expirationDate = new Date(0); // Set to a past date (Jan 1, 1970)
+    const cookieValue = `; expires=${expirationDate.toUTCString()}; Secure`;
+    document.cookie = `session_token=${cookieValue}; path=/`;
   }
 }

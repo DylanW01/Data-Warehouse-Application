@@ -3,6 +3,8 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { Subscription } from "rxjs";
 import { MatSidenav } from "@angular/material/sidenav";
 import { environment } from "src/environments/environment";
+import { DataAccessService } from "src/app/services/data-access.service";
+import { Router } from "@angular/router";
 
 const MOBILE_VIEW = "screen and (max-width: 768px)";
 const TABLET_VIEW = "screen and (min-width: 769px) and (max-width: 1024px)";
@@ -29,7 +31,12 @@ export class FullComponent implements OnInit {
     return this.isMobileScreen;
   }
 
-  constructor(private breakpointObserver: BreakpointObserver) {
+  constructor(private breakpointObserver: BreakpointObserver, private api: DataAccessService, private router: Router) {
+    let cookie = this.api.getUserTokenFromCookie();
+    if (cookie == null) {
+      this.router.navigate(["/authentication", "login"]);
+    }
+
     this.htmlElement = document.querySelector("html")!;
     this.layoutChangesSubscription = this.breakpointObserver.observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW]).subscribe((state) => {
       // SidenavOpened must be reset true when layout changes
