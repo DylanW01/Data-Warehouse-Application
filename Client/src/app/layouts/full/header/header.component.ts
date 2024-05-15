@@ -1,16 +1,11 @@
-import {
-  Component,
-  Output,
-  EventEmitter,
-  Input,
-  ViewEncapsulation,
-} from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-
+import { Component, Output, EventEmitter, Input, ViewEncapsulation } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { DataAccessService } from "src/app/services/data-access.service";
+import { Observable } from "rxjs"; // Import Observable
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
+  selector: "app-header",
+  templateUrl: "./header.component.html",
   encapsulation: ViewEncapsulation.None,
 })
 export class HeaderComponent {
@@ -22,5 +17,5 @@ export class HeaderComponent {
 
   showFiller = false;
 
-  constructor(public dialog: MatDialog) {}
+  constructor(public dialog: MatDialog, private api: DataAccessService) {}
 }
