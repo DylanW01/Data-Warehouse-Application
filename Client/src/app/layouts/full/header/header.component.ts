@@ -17,6 +17,7 @@ export class HeaderComponent {
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   showFiller = false;
+  username = this.api.getUserNameFromToken();
 
   constructor(public dialog: MatDialog, private api: DataAccessService, public router: Router) {}
 

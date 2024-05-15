@@ -1,7 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { environment } from "../../environments/environment";
-import { Observable, of } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -76,6 +75,17 @@ export class DataAccessService {
     return decodeURIComponent(cookie.split("=")[1]);
   }
 
+  // get user info and token
+
+  getUserNameFromToken() {
+    let token = this.getUserTokenFromCookie();
+    if (token) {
+      return this.parseJwt(token).name;
+    } else {
+      return null;
+    }
+  }
+
   // Decode JWT token payload without using a library
   parseJwt(token: string) {
     const base64Url = token.split(".")[1];
@@ -90,6 +100,8 @@ export class DataAccessService {
     );
     return JSON.parse(jsonPayload);
   }
+
+  // login and logout functions
 
   setCookieToken(value: string) {
     const expirationDate = new Date();

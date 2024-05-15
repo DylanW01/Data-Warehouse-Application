@@ -903,6 +903,7 @@ app.post('/login', async function (req, res) {
       payload = {
         iss: 'datawarehouseapi.dylanwarrell.com',
         sub: user.USERNAME,
+        name: user.NAME,
         role_id: user.ROLE_ID
       };
       // Create a new user object without the password hash
