@@ -33,7 +33,6 @@
                     <mat-form-field class="w-100" appearance="outline">
                       <mat-label>Year</mat-label>
                       <input matInput type="number" [formControl]="year" required />
-                      <mat-hint>2018 - 2024</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-md-6 col-sm-12">
@@ -46,7 +45,7 @@
                 </div>
                 <div class="row" style="justify-content: space-around">
                   <mat-form-field>
-                    <mat-label>Operator</mat-label>
+                    <mat-label>Timeframe</mat-label>
                     <mat-select [(ngModel)]="timeframe" required>
                       <mat-option value="Year">Year</mat-option>
                       <mat-option value="Quarter">Quarter</mat-option>
@@ -124,7 +123,6 @@
                     <mat-form-field class="w-100" appearance="outline">
                       <mat-label>Year</mat-label>
                       <input matInput type="number" [formControl]="year" required />
-                      <mat-hint>2018 - 2024</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-md-6 col-sm-12">
