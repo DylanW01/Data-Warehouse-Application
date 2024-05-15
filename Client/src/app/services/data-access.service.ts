@@ -24,8 +24,46 @@ export class DataAccessService {
     });
   }
 
+  // API calls
+
   login(credentials: any) {
     return this.request("POST", `${environment.serverUrl}/login`, credentials);
+  }
+
+  // Vice Chancellor API calls
+
+  getMostActiveDepartmentByMonth(year: number, timeframe: string, value: number, fetchnum: number) {
+    return this.request("GET", `${environment.serverUrl}/MostActiveDepartmentByMonth/${year}/${timeframe}/${value}/${fetchnum}`);
+  }
+
+  getTotalIncomeFromFinesByDate(year: number, timeframe: string, value: number) {
+    return this.request("GET", `${environment.serverUrl}/TotalIncomeFromFinesByDate/${year}/${timeframe}/${value}`);
+  }
+
+  // Finance Director API calls
+
+  getFineSumByDate(year: number, timeframe: string, value: number) {
+    return this.request("GET", `${environment.serverUrl}/FineSumByDate/${year}/${timeframe}/${value}`);
+  }
+
+  getLateFineSumByDate(year: number, timeframe: string, value: number) {
+    return this.request("GET", `${environment.serverUrl}/LateFineSumByDate/${year}/${timeframe}/${value}`);
+  }
+
+  // Chief Librarian API calls
+
+  getPopularBooksByMonth(courseId: number, year: number, timeframe: string, value: number, fetchnum: number) {
+    return this.request("GET", `${environment.serverUrl}/PopularBooksByMonth/${courseId}/${year}/${timeframe}/${value}/${fetchnum}`);
+  }
+
+  // Department Head API calls
+
+  getMostPopularBooksByPageCount(year: number, timeframe: string, value: number, fetchnum: number, pageCount: number, operator: string) {
+    return this.request("GET", `${environment.serverUrl}/MostPopularBooksByPageCount/${year}/${timeframe}/${value}/${fetchnum}/${pageCount}/${operator}`);
+  }
+
+  getMostActiveStudentsByMonth(courseId: number, year: number, timeframe: string, value: number, fetchnum: number) {
+    return this.request("GET", `${environment.serverUrl}/MostActiveStudentsByMonth/${courseId}/${year}/${timeframe}/${value}/${fetchnum}`);
   }
 
   // Authentication with JWT token
