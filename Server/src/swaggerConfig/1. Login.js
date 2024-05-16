@@ -108,17 +108,83 @@
  *         description: Invalid token
  *       500:
  *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Main Dashboard
+ *   description: Queries for all users
  * /dashboardSummary:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Test
- *     tags: [User Accounts]
+ *     summary: Summary data for interactive charts on the dashboard
+ *     tags: [Main Dashboard]
  *     responses:
  *       200:
- *         description: info
+ *         description: Summary of loan & fine data for charts on the dashboard
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/dashboardResponse'
+ *       401:
+ *         description: Invalid token
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     dashboardResponse:
+ *       type: object
+ *       properties:
+ *         loansAndFines:
+ *           type: object
+ *           properties:
+ *             MONTH:
+ *               type: string
+ *             NUMBEROFLOANS:
+ *               type: number
+ *             NUMBEROFFINES:
+ *               type: number
+ *           example:
+ *             - MONTH: 2024-03
+ *               NUMBEROFLOANS: 2
+ *               NUMBEROFFINES: 2
+ *             - MONTH: 2024-02
+ *               NUMBEROFLOANS: 1
+ *               NUMBEROFFINES: 1
+ *         fineIncome:
+ *           type: object
+ *           properties:
+ *             MONTH:
+ *               type: string
+ *             TOTALFINEINCOME:
+ *               type: number
+ *           example:
+ *             - MONTH: 2024-03
+ *               TOTALFINEINCOME: 3.5
+ *             - MONTH: 2024-02
+ *               TOTALFINEINCOME: 1.5
+ *             - MONTH: 2024-01
+ *               TOTALFINEINCOME: 2
+ *         quarterlyFineIncome:
+ *           type: object
+ *           properties:
+ *             YEAR:
+ *               type: number
+ *             QUARTER:
+ *               type: number
+ *             TOTALFINEINCOME:
+ *               type: number
+ *           example:
+ *             - YEAR: 2024
+ *               QUARTER: 1
+ *               TOTALFINEINCOME: 6
+ *             - YEAR: 2023
+ *               QUARTER: 4
+ *               TOTALFINEINCOME: 5
  */
