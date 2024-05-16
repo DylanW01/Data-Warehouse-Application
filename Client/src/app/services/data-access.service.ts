@@ -65,6 +65,12 @@ export class DataAccessService {
     return this.request("GET", `${environment.serverUrl}/MostActiveStudentsByMonth/${courseId}/${year}/${timeframe}/${value}/${fetchnum}`);
   }
 
+  // Main dashboard
+
+  getDashboardSummary() {
+    return this.request("GET", `${environment.serverUrl}/dashboardSummary`);
+  }
+
   // Authentication with JWT token
 
   getUserTokenFromCookie() {

@@ -108,4 +108,17 @@
  *         description: Invalid token
  *       500:
  *         description: Internal server error
+ * /dashboardSummary:
+ *   get:
+ *     security:
+ *       - Bearer: []
+ *     summary: Test
+ *     tags: [User Accounts]
+ *     responses:
+ *       200:
+ *         description: info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
  */
