@@ -20,14 +20,13 @@ export class AppChiefLibrarianComponent {
   displayedColumns: string[] = ["title", "author", "loans", "fines"];
 
   // Query2
-  courseId1 = new FormControl();
   year1 = new FormControl();
   value1 = new FormControl();
   fetchnum1 = new FormControl();
   timeframe1: string = "";
   returnedData1: any[] = [];
   dataSource1 = new MatTableDataSource<any>();
-  displayedColumns1: string[] = ["title", "author", "loans", "fines"];
+  displayedColumns1: string[] = ["title", "author", "late"];
 
   constructor(private api: DataAccessService) {}
 
@@ -64,15 +63,15 @@ export class AppChiefLibrarianComponent {
     return this.courseId.valid && this.year.valid && this.value.valid && this.fetchnum.valid && this.timeframe !== "";
   }
 
-  // Query2
+  // getBooksReturnedLate
 
-  callQuery2() {
-    if (this.isGetPopularBooksByMonthFormValid()) {
+  callgetBooksReturnedLate() {
+    if (this.isgetBooksReturnedLateFormValid()) {
       this.api
-        .getPopularBooksByMonth(this.courseId.value, this.year.value, this.timeframe, this.value.value, this.fetchnum.value)
+        .getBooksReturnedLate(this.year1.value, this.timeframe1, this.value1.value, this.fetchnum1.value)
         .then((response: unknown) => {
-          this.returnedData = response as any[];
-          this.dataSource.data = this.returnedData;
+          this.returnedData1 = response as any[];
+          this.dataSource1.data = this.returnedData1;
         })
         .catch((error) => {
           console.error("Error fetching data:", error);
@@ -84,16 +83,15 @@ export class AppChiefLibrarianComponent {
     }
   }
 
-  resetQuery2() {
-    this.courseId.reset();
-    this.year.reset();
-    this.value.reset();
-    this.fetchnum.reset();
-    this.timeframe = "";
+  resetgetBooksReturnedLate() {
+    this.year1.reset();
+    this.value1.reset();
+    this.fetchnum1.reset();
+    this.timeframe1 = "";
   }
 
-  isQuery2FormValid(): boolean {
+  isgetBooksReturnedLateFormValid(): boolean {
     // Check if all required fields have a value
-    return this.courseId.valid && this.year.valid && this.value.valid && this.fetchnum.valid && this.timeframe !== "";
+    return this.year1.valid && this.value1.valid && this.fetchnum1.valid && this.timeframe1 !== "";
   }
 }
