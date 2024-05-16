@@ -84,7 +84,7 @@ app.get('/FineSumByDate/:year/:timeframe/:value', async function (req, res) {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 3) {
+    if (decoded.role_id !== 3 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -155,7 +155,7 @@ app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) 
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 3) {
+    if (decoded.role_id !== 3 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -230,7 +230,7 @@ app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', asy
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 4) {
+    if (decoded.role_id !== 4 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /PopularBooksByMonth. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -319,7 +319,7 @@ app.get('/ActiveCoursesByMonth', async function (req, res) {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 4) {
+    if (decoded.role_id !== 4 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -349,7 +349,7 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 4) {
+    if (decoded.role_id !== 4 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -381,7 +381,7 @@ app.get('/MostPopularBooksByPageCount/:year/:timeframe/:value/:fetchnum/:pagecou
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 2) {
+    if (decoded.role_id !== 2 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /MostPopularBooksByPageCount. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -477,7 +477,7 @@ app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 2) {
+    if (decoded.role_id !== 2 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /MostActiveStudentsByMonth. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -567,7 +567,7 @@ app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async 
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 1) {
+    if (decoded.role_id !== 1 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /MostActiveDepartmentByMonth. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
@@ -645,7 +645,7 @@ app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', async function (r
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 1) {
+    if (decoded.role_id !== 1 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /TotalIncomeFromFinesByDate. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account.` });
       return;
