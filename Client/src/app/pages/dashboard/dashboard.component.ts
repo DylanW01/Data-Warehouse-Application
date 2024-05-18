@@ -1,4 +1,6 @@
 import { Component, ViewEncapsulation, ViewChild, OnInit } from "@angular/core";
+import { Title } from "@angular/platform-browser";
+import { ActivatedRoute } from "@angular/router";
 import { ApexChart, ChartComponent, ApexDataLabels, ApexLegend, ApexStroke, ApexTooltip, ApexAxisChartSeries, ApexXAxis, ApexYAxis, ApexGrid, ApexPlotOptions, ApexFill, ApexMarkers, ApexResponsive } from "ng-apexcharts";
 import { DataAccessService } from "src/app/services/data-access.service";
 
@@ -68,7 +70,11 @@ export class AppDashboardComponent implements OnInit {
   finesQuarterChangePercentage: string = "";
   fineQuarterIncome: number = 0;
 
-  constructor(private api: DataAccessService) {
+  constructor(private api: DataAccessService, private titleService: Title, private route: ActivatedRoute) {
+    this.route.data.subscribe((data) => {
+      const pageTitle = data["title"] || "Dashboard"; // Default title if no data provided
+      this.titleService.setTitle(`${pageTitle} | Data Warehouse App`);
+    });
     //#region loanFineOverviewChart
     this.loanFineOverviewChart = {
       series: [2024],

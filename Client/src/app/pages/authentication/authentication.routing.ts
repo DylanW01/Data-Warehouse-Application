@@ -1,14 +1,15 @@
-import { Routes } from '@angular/router';
+import { Routes } from "@angular/router";
 
-import { AppSideLoginComponent } from './login/login.component';
+import { AppSideLoginComponent } from "./login/login.component";
 
 export const AuthenticationRoutes: Routes = [
   {
-    path: '',
+    path: "",
     children: [
       {
-        path: 'login',
+        path: "login",
         component: AppSideLoginComponent,
+        data: { title: "Login" },
       },
     ],
   },
