@@ -102,47 +102,26 @@ app.get('/FineSumByDate/:year/:timeframe/:value', async function (req, res) {
       return; // Exit early if validation fails
     }
 
-    let query;
-    if (timeframe == 'Year') {
-      // Handle the case when timeframe is "Year"
-      connection.execute(
-        `SELECT SUM(f.fine_amount) AS Total_Fine
-         FROM Fact_Loans f
-         JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
-         WHERE d.Year = :year`,
-        { year: year }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
-          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
-          res.status(200).json({ Total_Fine: "£" + totalFine });
-        }
-      );
-    } else {
-      // Handle other timeframes (Quarter, Month, Week)
-      connection.execute(
-        `SELECT SUM(f.fine_amount) AS Total_Fine
-        FROM Fact_Loans f
-        JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
-        WHERE UPPER(d.${timeframe}) = UPPER(:value)
-        AND d.Year = :year`,
-        { year: year, value: value }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
-          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
-          res.status(200).json({ Total_Fine: "£" + totalFine });
-        }
-      );
-    }
+    let result = await connection.execute(
+      `BEGIN CalculateTotalIncomeByTimeframe(:p_year, :p_timeframe, :p_value, :p_cursor); END;`,
+      {
+        p_year: year,
+        p_timeframe: timeframe,
+        p_value: value,
+        p_cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    let resultSet = result.outBinds.p_cursor;
+    let row = await resultSet.getRow(); // Get the single row
+
+    await resultSet.close();
+    let response = row ? { "Total_Fine": "£" + row.TOTAL_FINE.toFixed(2) } : {}; // Convert the TOTAL_FINE to string and prepend with £
+
+    console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+    res.status(200).json(response); // Return the object directly
+
     connection.release();
   } catch (err) {
     console.log(err);
