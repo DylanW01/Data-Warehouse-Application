@@ -609,54 +609,36 @@ app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async 
       return; // Exit early if validation fails
     }
 
-    let query;
-    if (timeframe == 'Year') {
-      // Handle the case when timeframe is "Year"
-      connection.execute(
-        `SELECT c.course_id, c.course_name, COUNT(DISTINCT l.loan_id) AS number_of_loans, COUNT(DISTINCT CASE WHEN l.fine_paid = 1 THEN l.loan_id END) AS number_of_fines
-        FROM Fact_Loans l
-        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
-        JOIN Dim_Courses c ON l.course_id = c.course_id
-        WHERE d.Year = :year
-        GROUP BY c.course_id, c.course_name
-        ORDER BY number_of_loans DESC, number_of_fines DESC
-        FETCH FIRST :fetchnum ROWS ONLY`,
-        { year: year, fetchnum: fetchnum }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows);
-        }
-      );
-    } else {
-      // Handle other timeframes (Quarter, Month, Week)
-      connection.execute(
-        `SELECT c.course_id, c.course_name, COUNT(DISTINCT l.loan_id) AS number_of_loans, COUNT(DISTINCT CASE WHEN l.fine_paid = 1 THEN l.loan_id END) AS number_of_fines
-        FROM Fact_Loans l
-        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
-        JOIN Dim_Courses c ON l.course_id = c.course_id
-        WHERE UPPER(d.${timeframe}) = UPPER(:value)
-        AND d.Year = :year
-        GROUP BY c.course_id, c.course_name
-        ORDER BY number_of_loans DESC, number_of_fines DESC
-        FETCH FIRST :fetchnum ROWS ONLY`,
-        { year: year, value: value, fetchnum: fetchnum }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows);
-        }
-      );
+    // Create a cursor to hold the result
+    let p_cursor = { type: oracledb.CURSOR, dir: oracledb.BIND_OUT };
+
+    // Execute the stored procedure
+    let result = await connection.execute(
+      `BEGIN get_most_active_department_by_month(:p_year, :p_timeframe, :p_value, :p_fetchnum, :p_cursor); END;`,
+      {
+        p_year: year,
+        p_timeframe: timeframe,
+        p_value: value,
+        p_fetchnum: fetchnum,
+        p_cursor: p_cursor
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    // Fetch rows from the result set
+    let resultSet = result.outBinds.p_cursor;
+    let rows = [];
+    let row;
+    while ((row = await resultSet.getRow())) {
+      rows.push(row);
     }
-    connection.release();
+
+    // Close the result set and connection
+    await resultSet.close();
+    await connection.close();
+
+    console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
+    res.status(200).json(rows);
   } catch (err) {
     console.log(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
