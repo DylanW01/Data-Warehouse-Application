@@ -290,8 +290,8 @@ export class AppDashboardComponent implements OnInit {
       },
     ];
     let fineIncomeLength = this.fineIncome.length;
-    this.finesTotalThisMonth = this.fineIncome[fineIncomeLength - 1].TOTALFINEINCOME;
-    let finesTotalLastMonth = this.fineIncome[fineIncomeLength - 2].TOTALFINEINCOME;
+    this.finesTotalThisMonth = this.fineIncome[fineIncomeLength - 1].TOTALFINEINCOME.toFixed(2);
+    let finesTotalLastMonth = this.fineIncome[fineIncomeLength - 2].TOTALFINEINCOME.toFixed(2);
     let finesChange = ((this.finesTotalThisMonth - finesTotalLastMonth) / finesTotalLastMonth) * 100;
     this.fineChangeDirection = finesChange >= 0 ? "up" : "down";
     this.finesChangePercentage = (finesChange >= 0 ? "+" : "") + finesChange.toFixed(0) + "%";
