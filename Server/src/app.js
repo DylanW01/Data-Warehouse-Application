@@ -904,40 +904,38 @@ app.post('/login', async function (req, res) {
     // Hash the input password using SHA256
     const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-    // Query the database
+    // Call the stored procedure
     const result = await connection.execute(
-      `select users.USER_ID USER_ID,
-        users.USERNAME USERNAME,
-        users.PASSWORD PASSWORD,
-        users.NAME NAME,
-        users.ROLE_ID ROLE_ID,
-        roles.ROLE_NAME ROLE_NAME from users
-        inner join roles on roles.role_id = users.role_id
-        WHERE users.USERNAME=:username AND users.PASSWORD=:hashedInputPassword`,
-      { username, hashedInputPassword },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      `BEGIN GET_USER(:username, :hashedInputPassword, :cursor); END;`,
+      {
+        username,
+        hashedInputPassword,
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    if (result.rows.length > 0) {
-      var user = result.rows[0];
+    const resultSet = result.outBinds.cursor;
+    let row;
+    if ((row = await resultSet.getRow())) {
       // User found
-
       // Create a JWT token and send it to the client along with the user details
       payload = {
         iss: 'datawarehouseapi.dylanwarrell.com',
-        sub: user.USERNAME,
-        name: user.NAME,
-        role_id: user.ROLE_ID
+        sub: row.USERNAME,
+        name: row.NAME,
+        role_id: row.ROLE_ID
       };
+      console.log(row);
       // Create a new user object without the password hash
       const userWithoutPassword = {
-        USER_ID: user.USER_ID,
-        USERNAME: user.USERNAME,
-        NAME: user.NAME,
-        ROLE_ID: user.ROLE_ID,
-        ROLE_NAME: user.ROLE_NAME
+        USER_ID: row.USER_ID,
+        USERNAME: row.USERNAME,
+        NAME: row.NAME,
+        ROLE_ID: row.ROLE_ID,
+        ROLE_NAME: row.ROLE_NAME
       };
-      console.log(`User ${user.USERNAME} logged in successfully`);
+      console.log(`User ${row.USERNAME} logged in successfully`);
       res.status(200).json({
         user: userWithoutPassword,
         token: jwt.sign(payload, process.env.JWTSECRET, { expiresIn: '1h' })
@@ -947,12 +945,12 @@ app.post('/login', async function (req, res) {
       console.log(`Login failed for username: ${username}`);
       res.status(401).json({ status: 'error', message: 'Invalid username or password' });
     }
+    resultSet.close();
     connection.release();
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.' });
   }
 });
-
 
 
 app.post('/new-password', async function (req, res) {
@@ -1011,6 +1009,7 @@ app.get('/dashboardSummary', async function (req, res) {
       connection.execute(
         `BEGIN get_loans_and_fines(:cursor); END;`,
         { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
         (err, result) => {
           if (err) {
             reject(err);
@@ -1030,6 +1029,7 @@ app.get('/dashboardSummary', async function (req, res) {
       connection.execute(
         `BEGIN get_fine_income(:cursor); END;`,
         { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
         (err, result) => {
           if (err) {
             reject(err);
@@ -1049,6 +1049,7 @@ app.get('/dashboardSummary', async function (req, res) {
       connection.execute(
         `BEGIN get_quarterly_fine_income(:cursor); END;`,
         { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
         (err, result) => {
           if (err) {
             reject(err);
