@@ -112,7 +112,7 @@ export class AppDashboardComponent implements OnInit {
       yaxis: {
         show: true,
         min: 0,
-        max: 20,
+        max: 15,
         tickAmount: 4,
         labels: {
           style: {
