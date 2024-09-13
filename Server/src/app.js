@@ -250,7 +250,6 @@ app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', asy
       return; // Exit early if validation fails
     }
 
-    let query;
     if (timeframe == 'Year') {
       // Handle the case when timeframe is "Year"
       connection.execute(
@@ -314,65 +313,89 @@ app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', asy
   }
 });
 
-app.get('/ActiveCoursesByMonth', async function (req, res) {
+app.get('/BooksReturnedLate/:year/:timeframe/:value/:fetchnum', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 4 && decoded.role_id !== 5) {
-      console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
+      console.log(`Access denied for user ${decoded.sub} at /BooksReturnedLate. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = req.params.year;
+    let timeframe = req.params.timeframe;
+    let value = req.params.value;
+    let fetchnum = req.params.fetchnum;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      console.log(`/BooksReturnedLate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT b.title,
+          b.author,
+          COUNT(DISTINCT CASE WHEN l.returned_on_date > l.return_by_date THEN l.loan_id END) AS number_of_late_returns
+        FROM Fact_Loans l
+        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+        JOIN Dim_Courses c ON l.course_id = c.course_id
+        JOIN Dim_Books b ON l.book_id = b.book_id
+          WHERE d.Year = :year
+        GROUP BY b.title, b.author
+        ORDER BY number_of_late_returns DESC
+        FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/BooksReturnedLate endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
         }
-        console.log(`/ActiveCoursesByMonth endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT b.title,
+        b.author,
+        COUNT(DISTINCT CASE WHEN l.returned_on_date > l.return_by_date THEN l.loan_id END) AS number_of_late_returns
+      FROM Fact_Loans l
+      JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+      JOIN Dim_Courses c ON l.course_id = c.course_id
+      JOIN Dim_Books b ON l.book_id = b.book_id
+      WHERE d.Year = :year
+        AND UPPER(d.${timeframe}) = UPPER(:value)
+      GROUP BY b.title, b.author
+      ORDER BY number_of_late_returns DESC
+      FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, value: value, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/BooksReturnedLate endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
+        }
+      );
+    }
     connection.release();
   } catch (err) {
+    console.log(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
-app.get('/LatestStudentsByQuarter', async function (req, res) {
-  try {
-    var token = req.headers.authorization.split(' ')[1];
-    var decoded = jwt.verify(token, process.env.JWTSECRET);
-    // Check if decoded.role_id is equal to role for RBAC
-    if (decoded.role_id !== 4 && decoded.role_id !== 5) {
-      console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
-      res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
-      return;
-    }
-    let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
-        }
-        console.log(`/LatestStudentsByQuarter endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
-    connection.release();
-  } catch (err) {
-    res.status(401).json({ status: 'error', message: 'Invalid Token' });
-  }
-});
 //#endregion
 
 //#region Departmental Heads Queries

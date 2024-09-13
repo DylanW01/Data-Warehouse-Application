@@ -74,8 +74,6 @@
  *         schema:
  *           type: integer
  *           format: int32
- *           minimum: 2
- *           maximum: 6
  *     responses:
  *       200:
  *         description: List of books.
@@ -87,76 +85,74 @@
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
  *         description: Unauthorised. Access token required.
- * /ActiveCoursesByMonth:
+ * /BooksReturnedLate/{year}/{timeframe}/{value}/{fetchnum}:
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Lists courses that borrowed the most books in a selected timeframe.
+ *     summary: Lists the books most often returned late, sorted in decending order.
  *     tags: [Chief Librarian]
  *     parameters:
  *       - name: year
- *         in: query
- *         description: The year for which to retrieve data.
+ *         in: path
+ *         description: Year to query.
  *         required: true
  *         schema:
  *           type: integer
  *           format: int32
- *           minimum: 2018
- *           maximum: 2024
- *       - name: month
- *         in: query
- *         description: The month (1 to 12) for which to retrieve data.
+ *       - name: timeframe
+ *         in: path
+ *         description: Timeframe to query.
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Year, Quarter, Month, Week]
+ *       - name: value
+ *         in: path
+ *         description: The value of the timeframe (If selecting "Year", the values must match). E.G. 2023 for Year, 2 for Quarter, June for Month, 24 for Week.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: fetchnum
+ *         in: path
+ *         description: The number of books to fetch (Top 3 books, Top 5 books etc).
  *         required: true
  *         schema:
  *           type: integer
  *           format: int32
- *           minimum: 1
- *           maximum: 12
  *     responses:
  *       200:
- *         description: List of courses.
+ *         description: List of books.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/BooksReturnedLateResponse'
  *       403:
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
  *         description: Unauthorised. Access token required.
- * /LatestStudentsByQuarter:
- *   get:
- *     security:
- *       - Bearer: []
- *     summary: Courses with students who most commonly return books late, organised by frequency for the selected quarter.
- *     tags: [Chief Librarian]
- *     parameters:
- *       - name: year
- *         in: query
- *         description: The year for which to retrieve data.
- *         required: true
- *         schema:
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     BooksReturnedLateResponse:
+ *       type: object
+ *       properties:
+ *         TITLE:
+ *           type: string
+ *         AUTHOR:
+ *           type: string
+ *         NUMBER_OF_LATE_RETURNS:
  *           type: integer
- *           format: int32
- *           minimum: 2018
- *           maximum: 2024
- *       - name: quarter
- *         in: query
- *         description: The quarter (1 to 4) for which to retrieve data.
- *         required: true
- *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 1
- *           maximum: 4
- *     responses:
- *       200:
- *         description: List of courses.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *       403:
- *         description: Unauthorised. User does not have permissions to call this query.
- *       401:
- *         description: Unauthorised. Access token required.
+ *       example:
+ *         - TITLE: And Then There Were None
+ *           AUTHOR: Agatha Christie
+ *           NUMBER_OF_LATE_RETURNS: 5
+ *         - TITLE: The Running Grave
+ *           AUTHOR: J. K. Rowling
+ *           NUMBER_OF_LATE_RETURNS: 3
+ *         - TITLE: The Lord of the Rings
+ *           AUTHOR: John Ronald Reuel Tolkien
+ *           NUMBER_OF_LATE_RETURNS: 1
  */
