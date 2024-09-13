@@ -55,6 +55,10 @@ export class DataAccessService {
     return this.request("GET", `${environment.serverUrl}/PopularBooksByMonth/${courseId}/${year}/${timeframe}/${value}/${fetchnum}`);
   }
 
+  getBooksReturnedLate(year: number, timeframe: string, value: number, fetchnum: number) {
+    return this.request("GET", `${environment.serverUrl}/BooksReturnedLate/${year}/${timeframe}/${value}/${fetchnum}`);
+  }
+
   // Department Head API calls
 
   getMostPopularBooksByPageCount(year: number, timeframe: string, value: number, fetchnum: number, pageCount: number, operator: string) {
