@@ -1,21 +1,9 @@
-<mat-sidenav-container
-  class="mainWrapper blue_theme  light-theme"
-  autosize
-  autoFocus
-  dir="ltr"
->
+<mat-sidenav-container class="mainWrapper blue_theme light-theme" autosize autoFocus dir="ltr">
   <!-- ============================================================== -->
   <!-- Vertical Sidebar -->
   <!-- ============================================================== -->
 
-  <mat-sidenav
-    #leftsidenav
-    [mode]="isOver ? 'over' : 'side'"
-    [opened]="!isOver"
-    (openedChange)="onSidenavOpenedChange($event)"
-    (closedStart)="onSidenavClosedStart()"
-    class="sidebarNav"
-  >
+  <mat-sidenav #leftsidenav [mode]="isOver ? 'over' : 'side'" [opened]="!isOver" (openedChange)="onSidenavOpenedChange($event)" (closedStart)="onSidenavClosedStart()" class="sidebarNav">
     <app-sidebar></app-sidebar>
   </mat-sidenav>
   <!-- ============================================================== -->
@@ -26,11 +14,7 @@
     <!-- VerticalHeader -->
     <!-- ============================================================== -->
 
-    <app-header
-      [showToggle]="!isOver"
-      (toggleCollapsed)="toggleCollapsed()"
-      (toggleMobileNav)="sidenav.toggle()"
-    ></app-header>
+    <app-header [showToggle]="!isOver" (toggleCollapsed)="toggleCollapsed()" (toggleMobileNav)="sidenav.toggle()"></app-header>
 
     <main class="pageWrapper">
       <!-- ============================================================== -->
@@ -38,5 +22,9 @@
       <!-- ============================================================== -->
       <router-outlet></router-outlet>
     </main>
+    <footer>
+      <span>&copy; 2024 Dylan Warrell</span>
+      <span>{{ currentApplicationVersion }}</span>
+    </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

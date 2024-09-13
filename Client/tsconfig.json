@@ -14,11 +14,14 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
+    "typeRoots": ["node_modules/@types"],
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
+    "types": ["node"],
     "useDefineForClassFields": false,
+    "resolveJsonModule": true,
     "lib": [
       "ES2022",
       "dom"

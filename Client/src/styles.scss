@@ -1,1 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
+footer {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    width: -webkit-fill-available;
+    background-color: #f9f9f9;
+    padding: 20px;
+    justify-content: space-between;
+}
