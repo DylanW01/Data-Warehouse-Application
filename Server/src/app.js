@@ -93,6 +93,7 @@ app.get('/FineSumByDate', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -116,6 +117,7 @@ app.get('/LateFineSumByDate', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/LateFineSumByDate endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -141,6 +143,7 @@ app.get('/PopularBooksByMonth', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/PopularBooksByMonth endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -164,6 +167,7 @@ app.get('/ActiveCoursesByMonth', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/ActiveCoursesByMonth endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -187,6 +191,7 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/LatestStudentsByQuarter endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -212,6 +217,7 @@ app.get('/MostPopularBooksByPageCount', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/MostPopularBooksByPageCount endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -235,6 +241,7 @@ app.get('/MostActiveStudentsByMonth', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/MostActiveStudentsByMonth endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -260,6 +267,7 @@ app.get('/MostActiveDepartmentByMonth', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -283,6 +291,7 @@ app.get('/TotalIncomeFromFinesByDate', async function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -319,6 +328,7 @@ app.get('/ping', function (req, res) {
             console.error(err.message);
             return;
           }
+          console.log(`/users endpoint called successfully by username: ${decoded.sub}`);
           res.status(200).json(result.rows); // only return rows
         }
       );
@@ -352,6 +362,7 @@ app.get('/ping', function (req, res) {
             console.error(err.message);
             return;
           }
+          console.log(`/books endpoint called successfully by username: ${decoded.sub}`);
           res.status(200).json(result.rows); // only return rows
         }
       );
@@ -399,6 +410,7 @@ app.get('/ping', function (req, res) {
             console.error(err.message);
             return;
           }
+          console.log(`/fines endpoint called successfully by username: ${decoded.sub}`);
           res.status(200).json(result.rows); // only return rows
         }
       );
@@ -440,6 +452,7 @@ app.get('/ping', function (req, res) {
           console.error(err.message);
           return;
         }
+        console.log(`/loans endpoint called successfully by username: ${decoded.sub}`);
         res.status(200).json(result.rows); // only return rows
       }
     );
@@ -491,12 +504,14 @@ app.get('/ping', function (req, res) {
           ROLE_ID: user.ROLE_ID,
           ROLE_NAME: user.ROLE_NAME
         };
+        console.log(`User ${user.USERNAME} logged in successfully`);
         res.status(200).json({
           user: userWithoutPassword,
           token: jwt.sign(payload, process.env.JWTSECRET, {expiresIn: '1h'})
         });
       } else {
         // User not found or invalid password
+        console.log(`Login failed for username: ${username}`);
         res.status(401).json({status: 'error', message: 'Invalid username or password'});
       }
       connection.release();
@@ -536,6 +551,7 @@ app.get('/ping', function (req, res) {
             connection.commit();
 
             // Respond with the result
+            console.log(`Password changed for username: ${username}`);
             res.status(200).json(result);
         } catch (updateError) {
             // Handle database update error
