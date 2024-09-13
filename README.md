@@ -94,7 +94,7 @@ Open the Server folder, create a .env file with the environment variables and ru
 2. Run the development server
 
    ```sh
-   npm run dev server
+   npm run dev-server
    ```
 
    <p align="right">(<a href="#readme-top">back to top</a>)</p>
