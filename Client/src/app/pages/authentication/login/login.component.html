@@ -1,46 +1,31 @@
-<div
-  class="blank-layout-container justify-content-center align-items-center bg-light-primary"
->
-  <div
-    class="position-relative row w-100 h-100 bg-gredient justify-content-center"
-  >
+<div class="blank-layout-container justify-content-center align-items-center bg-light-primary">
+  <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
     <div class="col-lg-4 d-flex align-items-center">
       <mat-card class="cardWithShadow boxed-auth">
         <mat-card-content class="p-32">
           <div class="text-center">
             <a [routerLink]="['/dashboard']">
-              <img
-                src="./assets/images/logos/uog-logo.webp"
-                style="width: 50%"
-                class="align-middle m-2"
-                alt="logo"
-              />
+              <img src="./assets/images/logos/uog-logo.webp" style="width: 50%" class="align-middle m-2" alt="logo" />
             </a>
           </div>
 
+          <!-- login.component.html -->
           <form class="m-t-30">
-            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
-              >Username</mat-label
-            >
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Username</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput />
+              <input matInput [(ngModel)]="username" name="username" />
             </mat-form-field>
-            <!-- password -->
-            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
-              >Password</mat-label
-            >
+
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Password</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput type="password" />
+              <input matInput [(ngModel)]="password" name="password" type="password" />
             </mat-form-field>
-            <a
-              [routerLink]="['/']"
-              mat-flat-button
-              color="primary"
-              class="w-100"
-            >
-              Sign In
-            </a>
-            <!-- input -->
+
+            <button mat-flat-button color="primary" class="w-100" (click)="login()">Sign In</button>
+            <div *ngIf="loginSuccess" class="success-message">Login successful! Redirecting...</div>
+            <div *ngIf="loginError" class="error-message">
+              {{ loginError }}
+            </div>
           </form>
         </mat-card-content>
       </mat-card>
