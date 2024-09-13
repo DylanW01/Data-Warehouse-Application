@@ -198,7 +198,7 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
 //#endregion
 
 //#region Departmental Heads Queries
-app.get('/MostPopularBooksByGenre', async function (req, res) {
+app.get('/MostPopularBooksByPageCount', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
