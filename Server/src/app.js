@@ -1016,108 +1016,6 @@ app.get('/dashboardSummary', async function (req, res) {
     // Wrap each query in a new Promise
     let loansAndFinesPromise = new Promise((resolve, reject) => {
       connection.execute(
-        `SELECT TO_CHAR(returned_on_date, 'YYYY-MM') AS Month,
-          COUNT(*) AS NumberOfLoans,
-          COUNT(CASE WHEN fine_amount > 0 THEN 1 END) AS NumberOfFines
-        FROM Fact_Loans
-        WHERE returned_on_date >= ADD_MONTHS(SYSDATE, -24)
-        GROUP BY TO_CHAR(returned_on_date, 'YYYY-MM')
-        ORDER BY Month DESC`,
-        {}, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve({ loansAndFines: result.rows });
-        }
-      );
-    });
-
-    let fineIncomePromise = new Promise((resolve, reject) => {
-      connection.execute(
-        `SELECT TO_CHAR(fine_paid_date, 'YYYY-MM') AS Month, SUM(fine_amount) AS TotalFineIncome
-         FROM Fact_Loans
-         WHERE fine_paid_date >= ADD_MONTHS(SYSDATE, -24)
-         GROUP BY TO_CHAR(fine_paid_date, 'YYYY-MM')
-         ORDER BY Month DESC`,
-        {}, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve({ fineIncome: result.rows });
-        }
-      );
-    });
-
-    let quarterlyFineIncomePromise = new Promise((resolve, reject) => {
-      connection.execute(
-        `WITH quarters AS (
-          SELECT Year, Quarter 
-          FROM Dim_Date 
-          WHERE DateKey IN (
-            SELECT MAX(DateKey) 
-            FROM Dim_Date 
-            WHERE DateKey < ADD_MONTHS(SYSDATE, -3)
-            UNION ALL
-            SELECT MAX(DateKey) 
-            FROM Dim_Date 
-            WHERE DateKey < ADD_MONTHS(SYSDATE, -6)
-          )
-        )
-        SELECT d.Year, d.Quarter, SUM(f.fine_amount) AS TotalFineIncome
-        FROM Fact_Loans f
-        JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
-        JOIN quarters q ON d.Year = q.Year AND d.Quarter = q.Quarter
-        GROUP BY d.Year, d.Quarter
-        ORDER BY d.Year DESC, d.Quarter DESC`,
-        {}, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve({ quarterlyFineIncome: result.rows });
-        }
-      );
-    });
-
-    // Use Promise.all to wait for all queries to complete
-    Promise.all([loansAndFinesPromise, fineIncomePromise, quarterlyFineIncomePromise])
-      .then((results) => {
-        // All queries have completed successfully
-        console.log(`/dashboardSummary endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(Object.assign({}, ...results));
-      })
-      .catch((err) => {
-        // One or more queries failed
-        console.error(err.message);
-      })
-      .finally(() => {
-        connection.release();
-      });
-
-  } catch (err) {
-    console.log(err);
-    res.status(401).json({ status: 'error', message: 'Invalid Token' });
-  }
-});
-
-app.get('/dashboardSummary', async function (req, res) {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWTSECRET);
-
-    let connection = await warehouseDB.getConnection();
-
-    // Wrap each query in a new Promise
-    let loansAndFinesPromise = new Promise((resolve, reject) => {
-      connection.execute(
         `BEGIN get_loans_and_fines(:cursor); END;`,
         { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
         (err, result) => {
@@ -1195,6 +1093,8 @@ app.get('/dashboardSummary', async function (req, res) {
 
 async function fetchAllRowsFromRS(resultSet) {
   return new Promise((resolve, reject) => {
+    let rowsWithColumnNames = [];
+    let columnNames = resultSet.metaData.map(meta => meta.name);
     function fetchRows() {
       resultSet.getRows(100, (err, rows) => {
         if (err) {
@@ -1204,11 +1104,17 @@ async function fetchAllRowsFromRS(resultSet) {
             if (err) {
               reject(err);
             } else {
-              resolve([]);
+              resolve(rowsWithColumnNames);
             }
           });
         } else if (rows.length > 0) {
-          resolve(rows);
+          rows.forEach(row => {
+            let rowWithColumnNames = {};
+            columnNames.forEach((name, i) => {
+              rowWithColumnNames[name] = row[i];
+            });
+            rowsWithColumnNames.push(rowWithColumnNames);
+          });
           fetchRows(); // fetch next set of rows
         }
       });
@@ -1216,6 +1122,7 @@ async function fetchAllRowsFromRS(resultSet) {
     fetchRows();
   });
 }
+
 
 
 //#endregion 
