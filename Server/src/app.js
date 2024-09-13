@@ -1020,7 +1020,7 @@ app.get('/dashboardSummary', async function (req, res) {
           COUNT(*) AS NumberOfLoans,
           COUNT(CASE WHEN fine_amount > 0 THEN 1 END) AS NumberOfFines
         FROM Fact_Loans
-        WHERE returned_on_date >= ADD_MONTHS(SYSDATE, -6)
+        WHERE returned_on_date >= ADD_MONTHS(SYSDATE, -24)
         GROUP BY TO_CHAR(returned_on_date, 'YYYY-MM')
         ORDER BY Month DESC`,
         {}, // bind variables
@@ -1039,7 +1039,7 @@ app.get('/dashboardSummary', async function (req, res) {
       connection.execute(
         `SELECT TO_CHAR(fine_paid_date, 'YYYY-MM') AS Month, SUM(fine_amount) AS TotalFineIncome
          FROM Fact_Loans
-         WHERE fine_paid_date >= ADD_MONTHS(SYSDATE, -6)
+         WHERE fine_paid_date >= ADD_MONTHS(SYSDATE, -24)
          GROUP BY TO_CHAR(fine_paid_date, 'YYYY-MM')
          ORDER BY Month DESC`,
         {}, // bind variables

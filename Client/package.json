@@ -1,6 +1,6 @@
 {
   "name": "data-warehouse-client",
-  "version": "v.2024-05-15",
+  "version": "v.2024-05-16",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
