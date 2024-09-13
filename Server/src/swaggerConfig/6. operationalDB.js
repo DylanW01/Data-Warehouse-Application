@@ -17,6 +17,10 @@
  *           application/json:
  *             schema:
  *               type: array
+ *       401:
+ *         description: Unauthorized. Access token required.
+ *       500:
+ *         description: Internal Server Error. Something went wrong on the server.
  * /books:
  *   get:
  *     security:
@@ -26,11 +30,15 @@
  *     tags: [Operational DB Queries]
  *     responses:
  *       200:
- *         description: The list of the users
+ *         description: The list of the books
  *         content:
  *           application/json:
  *             schema:
  *               type: array
+ *       401:
+ *         description: Unauthorized. Access token required.
+ *       500:
+ *         description: Internal Server Error. Something went wrong on the server.
  * /loans:
  *   get:
  *     security:
@@ -40,11 +48,15 @@
  *     tags: [Operational DB Queries]
  *     responses:
  *       200:
- *         description: The list of the users
+ *         description: The list of the loans
  *         content:
  *           application/json:
  *             schema:
  *               type: array
+ *       401:
+ *         description: Unauthorized. Access token required.
+ *       500:
+ *         description: Internal Server Error. Something went wrong on the server.
  * /fines:
  *   get:
  *     security:
@@ -54,9 +66,13 @@
  *     tags: [Operational DB Queries]
  *     responses:
  *       200:
- *         description: The list of the users
+ *         description: The list of issued fines
  *         content:
  *           application/json:
  *             schema:
  *               type: array
+ *       401:
+ *         description: Unauthorized. Access token required.
+ *       500:
+ *         description: Internal Server Error. Something went wrong on the server.
  */
