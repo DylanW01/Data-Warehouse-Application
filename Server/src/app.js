@@ -376,32 +376,98 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
 //#endregion
 
 //#region Departmental Heads Queries
-app.get('/MostPopularBooksByPageCount', async function (req, res) {
+app.get('/MostPopularBooksByPageCount/:year/:timeframe/:value/:fetchnum/:pagecount/:operator', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 2) {
-      console.log(`Access denied for user ${decoded.sub}. Make sure you are logged into the right account. Role ID: ${decoded.role_id}`);
+      console.log(`Access denied for user ${decoded.sub} at /MostPopularBooksByPageCount. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = Number(req.params.year);
+    let timeframe = req.params.timeframe;
+    let value = Number(req.params.value);
+    let fetchnum = Number(req.params.fetchnum);
+    let pages = Number(req.params.pagecount);
+    let operator = req.params.operator;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      console.log(`/MostPopularBooksByPageCount endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    operator = operator == "Greater than" ? ">" : operator == "Less than" ? "<" : operator;
+    if (operator != ">" && operator != "<") {
+      console.log(`/MostPopularBooksByPageCount endpoint blocked due to invalid operator: ${operator}`);
+      res.status(400).json({ status: 'error', message: 'Invalid operator' });
+      return; // Exit early if validation fails
+    }
+
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT b.title,
+          b.author,
+          b.pages,
+          b.ISBN,
+          COUNT(DISTINCT l.loan_id) AS number_of_loans
+          FROM Fact_Loans l
+          JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+          JOIN Dim_Books b ON l.book_id = b.book_id
+          WHERE d.Year = :year
+          AND b.pages ${operator} :pages
+          GROUP BY b.title, b.author, b.pages, b.ISBN
+          ORDER BY number_of_loans DESC
+          FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, pages: pages, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/MostPopularBooksByPageCount endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
         }
-        console.log(`/MostPopularBooksByPageCount endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT b.title,
+        b.author,
+        b.pages,
+        b.ISBN,
+        COUNT(DISTINCT l.loan_id) AS number_of_loans
+        FROM Fact_Loans l
+        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
+        JOIN Dim_Books b ON l.book_id = b.book_id
+        WHERE d.Year = :year
+        AND UPPER(d.${timeframe}) = UPPER(:value)
+        AND b.pages ${operator} :pages
+        GROUP BY b.title, b.author, b.pages, b.ISBN
+        ORDER BY number_of_loans DESC
+        FETCH FIRST :fetchnum ROWS ONLY`,
+        { year: year, value: value, pages: pages, fetchnum: fetchnum }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/MostPopularBooksByPageCount endpoint called successfully by username: ${decoded.sub}`);
+          res.status(200).json(result.rows);
+        }
+      );
+    }
     connection.release();
   } catch (err) {
+    console.log(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
