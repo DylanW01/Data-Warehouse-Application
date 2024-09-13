@@ -1,9 +1,128 @@
-<!-- ============================================================== -->
-<!-- Simple four boxes Row -->
-<!-- ============================================================== -->
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow theme-card">
+  <mat-card-header>
+    <mat-card-title class="m-b-0">Finance Director</mat-card-title>
+    <mat-card-subtitle class="mat-body-1">Queries for the Finance Director only. If you are not logged in as this user, requests will be blocked by role-based access control.</mat-card-subtitle>
+  </mat-card-header>
   <mat-card-content>
-    <mat-card-title>Finance Director</mat-card-title>
-    <mat-card-subtitle class="mat-body-1">This is test page</mat-card-subtitle>
+    <div class="row">
+      <!-- GetFineSumByDate -->
+      <div class="col-lg-12">
+        <mat-card class="b-1 shadow-none">
+          <mat-card-header>
+            <mat-card-title>Sum of fines by timeframe</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="b-t-1">
+            <div class="row">
+              <div class="col-lg-5">
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Year</mat-label>
+                      <input matInput type="number" [formControl]="year" required />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Timeframe Value</mat-label>
+                      <input matInput type="number" [formControl]="value" required />
+                      <mat-hint>E.G. 28 for week 28</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: space-around" style="justify-content: left">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field>
+                      <mat-label>Timeframe</mat-label>
+                      <mat-select [(ngModel)]="timeframe" required>
+                        <mat-option value="Year">Year</mat-option>
+                        <mat-option value="Quarter">Quarter</mat-option>
+                        <mat-option value="Month">Month</mat-option>
+                        <mat-option value="Week">Week</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: left">
+                  <button mat-flat-button color="warn" (click)="resetGetFineSumByDate()">Clear</button>
+                  <button mat-flat-button color="primary" (click)="callGetFineSumByDate()">Get Report</button>
+                </div>
+              </div>
+              <div class="col-lg-7">
+                <!-- Results Table -->
+                <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                  <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef>Total</th>
+                    <td mat-cell *matCellDef="let element">{{ element.Total_Fine }}</td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- End of GetFineSumByDate -->
+    </div>
+    <div class="row">
+      <!-- GetLateFineSumByDate -->
+      <div class="col-lg-12">
+        <mat-card class="b-1 shadow-none">
+          <mat-card-header>
+            <mat-card-title>Sum of late fines by timeframe</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="b-t-1">
+            <div class="row">
+              <div class="col-lg-5">
+                <div class="row" style="justify-content: space-around">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Year</mat-label>
+                      <input matInput type="number" [formControl]="year1" required />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field class="w-100" appearance="outline">
+                      <mat-label>Timeframe Value</mat-label>
+                      <input matInput type="number" [formControl]="value1" required />
+                      <mat-hint>E.G. 28 for week 28</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: space-around" style="justify-content: left">
+                  <div class="col-md-6 col-sm-12">
+                    <mat-form-field>
+                      <mat-label>Timeframe</mat-label>
+                      <mat-select [(ngModel)]="timeframe1" required>
+                        <mat-option value="Year">Year</mat-option>
+                        <mat-option value="Quarter">Quarter</mat-option>
+                        <mat-option value="Month">Month</mat-option>
+                        <mat-option value="Week">Week</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row" style="justify-content: left">
+                  <button mat-flat-button color="warn" (click)="resetGetLateFineSumByDate()">Clear</button>
+                  <button mat-flat-button color="primary" (click)="callGetLateFineSumByDate()">Get Report</button>
+                </div>
+              </div>
+              <div class="col-lg-7">
+                <!-- Results Table -->
+                <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+                  <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef>Total</th>
+                    <td mat-cell *matCellDef="let element">{{ element.Total_Fine }}</td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- End of GetLateFineSumByDate -->
+    </div>
   </mat-card-content>
 </mat-card>
