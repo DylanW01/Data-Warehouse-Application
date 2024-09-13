@@ -69,9 +69,9 @@ export class AppDashboardComponent implements OnInit {
   fineQuarterIncome: number = 0;
 
   constructor(private api: DataAccessService) {
-    //#region Update the charts with the new data
+    //#region loanFineOverviewChart
     this.loanFineOverviewChart = {
-      series: [],
+      series: [2024],
       grid: {
         borderColor: "rgba(0,0,0,0.1)",
         strokeDashArray: 3,
