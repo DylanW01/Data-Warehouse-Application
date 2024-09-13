@@ -19,6 +19,7 @@
     "express": "^4.17.1",
     "express-bearer-token": "^2.4.0",
     "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
     "nodemon": "^2.0.22",
     "oracledb": "^6.4.0",
     "request": "^2.88.2",
