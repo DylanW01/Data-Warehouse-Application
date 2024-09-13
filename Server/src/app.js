@@ -1108,6 +1108,115 @@ app.get('/dashboardSummary', async function (req, res) {
   }
 });
 
+app.get('/dashboardSummary', async function (req, res) {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWTSECRET);
+
+    let connection = await warehouseDB.getConnection();
+
+    // Wrap each query in a new Promise
+    let loansAndFinesPromise = new Promise((resolve, reject) => {
+      connection.execute(
+        `BEGIN get_loans_and_fines(:cursor); END;`,
+        { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          fetchAllRowsFromRS(result.outBinds.cursor)
+            .then((resultSet) => {
+              resolve({ loansAndFines: resultSet });
+            })
+            .catch((err) => {
+              reject(err);
+            });
+        }
+      );
+    });
+    let fineIncomePromise = new Promise((resolve, reject) => {
+      connection.execute(
+        `BEGIN get_fine_income(:cursor); END;`,
+        { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          fetchAllRowsFromRS(result.outBinds.cursor)
+            .then((resultSet) => {
+              resolve({ fineIncome: resultSet });
+            })
+            .catch((err) => {
+              reject(err);
+            });
+        }
+      );
+    });
+    let quarterlyFineIncomePromise = new Promise((resolve, reject) => {
+      connection.execute(
+        `BEGIN get_quarterly_fine_income(:cursor); END;`,
+        { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+        (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          fetchAllRowsFromRS(result.outBinds.cursor)
+            .then((resultSet) => {
+              resolve({ quarterlyFineIncome: resultSet });
+            })
+            .catch((err) => {
+              reject(err);
+            });
+        }
+      );
+    });
+
+    Promise.all([loansAndFinesPromise, fineIncomePromise, quarterlyFineIncomePromise])
+      .then((results) => {
+        console.log(`/dashboardSummary endpoint called successfully by username: ${decoded.sub}`);
+        res.status(200).json(Object.assign({}, ...results));
+      })
+      .catch((err) => {
+        // One or more queries failed
+        console.error(err.message);
+      })
+      .finally(() => {
+        connection.release();
+      });
+
+  } catch (err) {
+    console.log(err);
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
+  }
+});
+
+async function fetchAllRowsFromRS(resultSet) {
+  return new Promise((resolve, reject) => {
+    function fetchRows() {
+      resultSet.getRows(100, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else if (rows.length === 0) { // no rows, or no more rows
+          resultSet.close((err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve([]);
+            }
+          });
+        } else if (rows.length > 0) {
+          resolve(rows);
+          fetchRows(); // fetch next set of rows
+        }
+      });
+    }
+    fetchRows();
+  });
+}
+
 
 //#endregion 
 
