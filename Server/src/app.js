@@ -56,7 +56,7 @@ const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
     title: 'Data Warehouse API',
-    description: 'API to track data from Library Data Warehouse. Use the /login endpoint to get a JWT token to access the other endpoints via the green Authorize button.',
+    description: 'API to track data from Library Data Warehouse. Use the /login endpoint to get a JWT token to access the other endpoints via the green Authorize button. Queries are scoped to the logged in user so you will recieve an error if you try to access an endpoint that is not for your role.',
     version: appVersion,
     contact: {
       name: "Dylan Warrell",
