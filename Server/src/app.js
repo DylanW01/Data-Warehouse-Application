@@ -88,7 +88,7 @@ app.get('/ping', function (req, res) {
 
       let connection = await operationalDB.getConnection();
       connection.execute(
-        `SELECT 'OK' AS Result;`,
+        `SELECT 'OK' AS Result FROM dual;`,
         {}, // no bind variables
         { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
         (err, result) => {
