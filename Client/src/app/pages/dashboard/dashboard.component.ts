@@ -1,20 +1,6 @@
-import { Component, ViewEncapsulation, ViewChild } from '@angular/core';
-import {
-  ApexChart,
-  ChartComponent,
-  ApexDataLabels,
-  ApexLegend,
-  ApexStroke,
-  ApexTooltip,
-  ApexAxisChartSeries,
-  ApexXAxis,
-  ApexYAxis,
-  ApexGrid,
-  ApexPlotOptions,
-  ApexFill,
-  ApexMarkers,
-  ApexResponsive,
-} from 'ng-apexcharts';
+import { Component, ViewEncapsulation, ViewChild } from "@angular/core";
+import { ApexChart, ChartComponent, ApexDataLabels, ApexLegend, ApexStroke, ApexTooltip, ApexAxisChartSeries, ApexXAxis, ApexYAxis, ApexGrid, ApexPlotOptions, ApexFill, ApexMarkers, ApexResponsive } from "ng-apexcharts";
+import { DataAccessService } from "src/app/services/data-access.service";
 
 interface month {
   value: string;
@@ -59,43 +45,41 @@ export interface monthlyChart {
 }
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
+  selector: "app-dashboard",
+  templateUrl: "./dashboard.component.html",
   encapsulation: ViewEncapsulation.None,
 })
 export class AppDashboardComponent {
-  @ViewChild('chart') chart: ChartComponent = Object.create(null);
+  @ViewChild("chart") chart: ChartComponent = Object.create(null);
 
   public loanFineOverviewChart!: Partial<loanFineOverviewChart> | any;
   public yearlyChart!: Partial<yearlyChart> | any;
   public monthlyChart!: Partial<monthlyChart> | any;
+  returnedData: any[] = [];
+  loansAndFines: any[] = [];
+  fineIncome: any[] = [];
+  quarterlyFineIncome: any[] = [];
 
-  displayedColumns: string[] = ['assigned', 'name', 'priority', 'budget'];
+  constructor(private api: DataAccessService) {
+    this.api
+      .getDashboardSummary()
+      .then((response: any) => {
+        this.loansAndFines = response.loansAndFines.reverse();
+        this.fineIncome = response.fineIncome;
+        this.quarterlyFineIncome = response.quarterlyFineIncome;
+        this.updateCharts();
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        console.log("An error occurred. Please try again later.");
+        alert(error.error.message);
+      });
 
-  months: month[] = [
-    { value: 'mar', viewValue: 'March 2023' },
-    { value: 'apr', viewValue: 'April 2023' },
-    { value: 'june', viewValue: 'June 2023' },
-  ];
-
-  constructor() {
-    // sales overview chart
+    // Update the charts with the new data
     this.loanFineOverviewChart = {
-      series: [
-        {
-          name: 'Loans this month',
-          data: [355, 390, 300, 350, 390, 180, 355, 390],
-          color: '#5D87FF',
-        },
-        {
-          name: 'Fines this month',
-          data: [280, 250, 325, 215, 250, 310, 280, 250],
-          color: '#49BEFF',
-        },
-      ],
-
+      series: [],
       grid: {
-        borderColor: 'rgba(0,0,0,0.1)',
+        borderColor: "rgba(0,0,0,0.1)",
         strokeDashArray: 3,
         xaxis: {
           lines: {
@@ -104,54 +88,45 @@ export class AppDashboardComponent {
         },
       },
       plotOptions: {
-        bar: { horizontal: false, columnWidth: '35%', borderRadius: [4] },
+        bar: { horizontal: false, columnWidth: "35%", borderRadius: [4] },
       },
       chart: {
-        type: 'bar',
+        type: "bar",
         height: 390,
         offsetX: -15,
         toolbar: { show: true },
-        foreColor: '#adb0bb',
-        fontFamily: 'inherit',
+        foreColor: "#adb0bb",
+        fontFamily: "inherit",
         sparkline: { enabled: false },
       },
       dataLabels: { enabled: false },
       markers: { size: 0 },
-      legend: { show: false },
+      legend: { show: true },
       xaxis: {
-        type: 'category',
-        categories: [
-          '16/08',
-          '17/08',
-          '18/08',
-          '19/08',
-          '20/08',
-          '21/08',
-          '22/08',
-          '23/08',
-        ],
+        type: "datetime",
+        categories: [],
         labels: {
-          style: { cssClass: 'grey--text lighten-2--text fill-color' },
+          style: { cssClass: "grey--text lighten-2--text fill-color" },
         },
       },
       yaxis: {
         show: true,
         min: 0,
-        max: 400,
+        max: 20,
         tickAmount: 4,
         labels: {
           style: {
-            cssClass: 'grey--text lighten-2--text fill-color',
+            cssClass: "grey--text lighten-2--text fill-color",
           },
         },
       },
       stroke: {
         show: true,
         width: 3,
-        lineCap: 'butt',
-        colors: ['transparent'],
+        lineCap: "butt",
+        colors: ["transparent"],
       },
-      tooltip: { theme: 'light' },
+      tooltip: { theme: "light" },
 
       responsive: [
         {
@@ -172,22 +147,22 @@ export class AppDashboardComponent {
       series: [38, 40, 25],
 
       chart: {
-        type: 'donut',
+        type: "donut",
         fontFamily: "'Plus Jakarta Sans', sans-serif;",
-        foreColor: '#adb0bb',
+        foreColor: "#adb0bb",
         toolbar: {
           show: false,
         },
         height: 130,
       },
-      colors: ['#5D87FF', '#ECF2FF', '#F9F9FD'],
+      colors: ["#5D87FF", "#ECF2FF", "#F9F9FD"],
       plotOptions: {
         pie: {
           startAngle: 0,
           endAngle: 360,
           donut: {
-            size: '75%',
-            background: 'transparent',
+            size: "75%",
+            background: "transparent",
           },
         },
       },
@@ -219,16 +194,16 @@ export class AppDashboardComponent {
     this.monthlyChart = {
       series: [
         {
-          name: '',
-          color: '#49BEFF',
+          name: "",
+          color: "#49BEFF",
           data: [25, 66, 20, 40, 12, 58, 20],
         },
       ],
 
       chart: {
-        type: 'area',
+        type: "area",
         fontFamily: "'Plus Jakarta Sans', sans-serif;",
-        foreColor: '#adb0bb',
+        foreColor: "#adb0bb",
         toolbar: {
           show: false,
         },
@@ -236,26 +211,56 @@ export class AppDashboardComponent {
         sparkline: {
           enabled: true,
         },
-        group: 'sparklines',
+        group: "sparklines",
       },
       stroke: {
-        curve: 'smooth',
+        curve: "smooth",
         width: 2,
       },
       fill: {
-        colors: ['#E8F7FF'],
-        type: 'solid',
+        colors: ["#E8F7FF"],
+        type: "solid",
         opacity: 0.05,
       },
       markers: {
         size: 0,
       },
       tooltip: {
-        theme: 'dark',
+        theme: "dark",
         x: {
           show: false,
         },
       },
     };
+  }
+
+  updateCharts() {
+    // Update the 'loanFineOverviewChart' data
+    this.loanFineOverviewChart.series = [
+      {
+        name: "Loans this month",
+        data: this.loansAndFines.map((item) => item.NUMBEROFLOANS),
+        color: "#5D87FF",
+      },
+      {
+        name: "Fines this month",
+        data: this.loansAndFines.map((item) => item.NUMBEROFFINES),
+        color: "#49BEFF",
+      },
+    ];
+
+    this.loanFineOverviewChart = { ...this.loanFineOverviewChart, xaxis: { type: "datetime", categories: this.loansAndFines.map((item) => item.MONTH) } };
+
+    // Update the 'yearlyChart' data
+    this.yearlyChart.series = this.quarterlyFineIncome.map((item) => item.TOTALFINEINCOME);
+
+    // Update the 'monthlyChart' data
+    this.monthlyChart.series = [
+      {
+        name: "",
+        color: "#49BEFF",
+        data: this.fineIncome.map((item) => item.TOTALFINEINCOME),
+      },
+    ];
   }
 }
