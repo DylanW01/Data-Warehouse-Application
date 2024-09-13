@@ -32,6 +32,22 @@
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     TotalIncomeFromFinesByDateResponse:
+ *       type: object
+ *       properties:
+ *         NUMBER_OF_LOANS:
+ *           type: integer
+ *         TOTAL_FINES_INCOME:
+ *           type: integer
+ *       example:
+ *         NUMBER_OF_LOANS: 30
+ *         TOTAL_FINES_INCOME: 5
+ */
+
+/**
+ * @swagger
  * tags:
  *   name: Vice-Chancellor
  *   description: Queries for the Vice-Chancellor
@@ -82,34 +98,40 @@
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
  *         description: Unauthorised. Access token required.
- * /TotalIncomeFromFinesByDate:
+ * /TotalIncomeFromFinesByDate/{year}/{timeframe}/{value}:
  *   get:
  *     security:
  *       - Bearer: []
  *     summary: Lists the total income from fines for the selected timeframe.
  *     tags: [Vice-Chancellor]
  *     parameters:
- *       - name: startDate
- *         in: query
- *         description: The start date for which to retrieve data.
+ *       - name: year
+ *         in: path
+ *         description: Year to query.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *       - name: timeframe
+ *         in: path
+ *         description: Timeframe to query.
  *         required: true
  *         schema:
  *           type: string
- *           format: date
- *       - name: endDate
- *         in: query
- *         description: The end date for which to retrieve data.
+ *           enum: [Year, Quarter, Month, Week]
+ *       - name: value
+ *         in: path
+ *         description: The value of the timeframe (If selecting "Year", the values must match). E.G. 2023 for Year, 2 for Quarter, June for Month, 24 for Week.
  *         required: true
  *         schema:
  *           type: string
- *           format: date
  *     responses:
  *       200:
  *         description: Total income
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/TotalIncomeFromFinesByDateResponse'
  *       403:
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
