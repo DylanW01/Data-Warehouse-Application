@@ -79,7 +79,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 //#endregion
 
 //#region Finance Director Queries
-app.get('/FineSumByDate', async function (req, res) {
+app.get('/FineSumByDate/:year/:timeframe/:value', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -90,26 +90,67 @@ app.get('/FineSumByDate', async function (req, res) {
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = req.params.year;
+    let timeframe = req.params.timeframe;
+    let value = req.params.value;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      console.log(`/FineSumByDate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    let query;
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT SUM(f.fine_amount) AS Total_Fine
+         FROM Fact_Loans f
+         JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
+         WHERE d.Year = :year`,
+        { year: year }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
+          res.status(200).json({ Total_Fine: "£" + totalFine });
         }
-        console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT SUM(f.fine_amount) AS Total_Fine
+        FROM Fact_Loans f
+        JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
+        WHERE UPPER(d.${timeframe}) = UPPER(:value)
+        AND d.Year = :year`,
+        { year: year, value: value }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
+          res.status(200).json({ Total_Fine: "£" + totalFine });
+        }
+      );
+    }
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    console.log(err);
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
-app.get('/LateFineSumByDate', async function (req, res) {
+app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -120,22 +161,65 @@ app.get('/LateFineSumByDate', async function (req, res) {
       return;
     }
     let connection = await warehouseDB.getConnection();
-    connection.execute(
-      ``,
-      {}, // no bind variables
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
+    let year = req.params.year;
+    let timeframe = req.params.timeframe;
+    let value = req.params.value;
+
+    // Validate timeframe
+    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+    if (!allowedTimeframes.includes(timeframe)) {
+      //console.log(`/LateFineSumByDate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+      return; // Exit early if validation fails
+    }
+
+    let query;
+    if (timeframe == 'Year') {
+      // Handle the case when timeframe is "Year"
+      connection.execute(
+        `SELECT SUM(f.fine_amount) AS Total_Fine
+         FROM Fact_Loans f
+         JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
+         WHERE d.Year = :year
+         AND (f.fine_paid_date > f.returned_on_date + 7 OR (SYSDATE > f.returned_on_date + 7 AND f.fine_amount IS NOT NULL))`,
+        { year: year }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          //console.log(`/LateFineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
+          res.status(200).json({ Total_Fine: "£" + totalFine });
         }
-        console.log(`/LateFineSumByDate endpoint called successfully by username: ${decoded.sub}`);
-        res.status(200).json(result.rows); // only return rows
-      }
-    );
+      );
+    } else {
+      // Handle other timeframes (Quarter, Month, Week)
+      connection.execute(
+        `SELECT SUM(f.fine_amount) AS Total_Fine
+        FROM Fact_Loans f
+        JOIN Dim_Date d ON f.fine_paid_date = d.DateKey
+        WHERE UPPER(d.${timeframe}) = UPPER(:value)
+        AND d.Year = :year
+        AND (f.fine_paid_date > f.returned_on_date + 7 OR (SYSDATE > f.returned_on_date + 7 AND f.fine_amount IS NOT NULL))`,
+        { year: year, value: value }, // bind variables
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+        (err, result) => {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+          //console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
+          res.status(200).json({ Total_Fine: "£" + totalFine });
+        }
+      );
+    }
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    console.log(err);
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 //#endregion
@@ -166,8 +250,8 @@ app.get('/PopularBooksByMonth', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
@@ -196,8 +280,8 @@ app.get('/ActiveCoursesByMonth', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
@@ -226,8 +310,8 @@ app.get('/LatestStudentsByQuarter', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 //#endregion
@@ -258,8 +342,8 @@ app.get('/MostPopularBooksByPageCount', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
@@ -288,8 +372,8 @@ app.get('/MostActiveStudentsByMonth', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 //#endregion
@@ -320,8 +404,8 @@ app.get('/MostActiveDepartmentByMonth', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
@@ -350,24 +434,24 @@ app.get('/TotalIncomeFromFinesByDate', async function (req, res) {
       }
     );
     connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 //#endregion
 
 app.get('/ping', function (req, res) {
-  res.status(200).json({status: 'success', message: 'pong'});
-  });
+  res.status(200).json({ status: 'success', message: 'pong' });
+});
 
 //#region Operational DB Queries
-  app.get('/users', async function (req, res) {
-    try {
-      var token = req.headers.authorization.split(' ')[1];
-      var decoded = jwt.verify(token, process.env.JWTSECRET);
-      let connection = await operationalDB.getConnection();
-      connection.execute(
-        `SELECT u.USER_ID USER_ID,
+app.get('/users', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await operationalDB.getConnection();
+    connection.execute(
+      `SELECT u.USER_ID USER_ID,
         u.FIRST_NAME FIRST_NAME,
         u.LAST_NAME LAST_NAME,
         u.EMAIL EMAIL,
@@ -375,30 +459,30 @@ app.get('/ping', function (req, res) {
         c.COURSE_NAME COURSE_NAME,
         c.COURSE_CODE COURSE_CODE,
         c.COURSE_LEADER COURSE_LEADER FROM LIBRARY_USERS u INNER JOIN COURSES c ON u.COURSE_ID = c.COURSE_ID`,
-        {}, // no bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/users endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows); // only return rows
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
         }
-      );
-      connection.release();
-    } catch(err) {
-      res.status(401).json({status: 'error', message: 'Invalid Token'});
-    }
-  });
+        console.log(`/users endpoint called successfully by username: ${decoded.sub}`);
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
+  }
+});
 
-  app.get('/books', async function (req, res) {
-    try {
-      var token = req.headers.authorization.split(' ')[1];
-      var decoded = jwt.verify(token, process.env.JWTSECRET);
-      let connection = await operationalDB.getConnection();
-      connection.execute(
-        `SELECT b.BOOK_ID BOOK_ID,
+app.get('/books', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await operationalDB.getConnection();
+    connection.execute(
+      `SELECT b.BOOK_ID BOOK_ID,
         b.TITLE TITLE,
         b.AUTHOR_ID AUTHOR_ID,
         b.ISBN ISBN,
@@ -409,30 +493,30 @@ app.get('/ping', function (req, res) {
         a.LAST_NAME LAST_NAME
         FROM BOOKS b
         inner join authors a ON a.author_id = b.author_id`,
-        {}, // no bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/books endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows); // only return rows
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
         }
-      );
-      connection.release();
-  } catch(err) {
-    res.status(401).json({status: 'error', message: 'Invalid Token'});
+        console.log(`/books endpoint called successfully by username: ${decoded.sub}`);
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
-  });
+});
 
-  app.get('/fines', async function (req, res) {
-    try {
-      var token = req.headers.authorization.split(' ')[1];
-      var decoded = jwt.verify(token, process.env.JWTSECRET);
-      let connection = await operationalDB.getConnection();
-      connection.execute(
-        `SELECT f.FINE_AMOUNT FINE_AMOUNT,
+app.get('/fines', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await operationalDB.getConnection();
+    connection.execute(
+      `SELECT f.FINE_AMOUNT FINE_AMOUNT,
         f.FINE_DATE FINE_DATE,
         f.PAID FINE_PAID,
         l.LOAN_ID LOAN_ID,
@@ -457,28 +541,28 @@ app.get('/ping', function (req, res) {
         INNER JOIN BOOKS b ON l.BOOK_ID = b.BOOK_ID
         INNER JOIN LIBRARY_USERS u on u.USER_ID = l.USER_ID
         INNER JOIN COURSES c on u.COURSE_ID = c.COURSE_ID`,
-        {}, // no bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/fines endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows); // only return rows
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
         }
-      );
-      connection.release();
-    } catch(err) {
-      res.status(401).json({status: 'error', message: 'Invalid Token'});
-    }
-  });
+        console.log(`/fines endpoint called successfully by username: ${decoded.sub}`);
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
+  }
+});
 
-  app.get('/loans', async function (req, res) {
-    try {
-      var token = req.headers.authorization.split(' ')[1];
-      var decoded = jwt.verify(token, process.env.JWTSECRET);
-      let connection = await operationalDB.getConnection();
+app.get('/loans', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await operationalDB.getConnection();
     connection.execute(
       `SELECT l.LOAN_ID LOAN_ID,
       l.RETURN_BY BOOK_RETURN_BY,
@@ -511,24 +595,24 @@ app.get('/ping', function (req, res) {
       }
     );
     connection.release();
-    } catch(err) {
-      res.status(401).json({status: 'error', message: 'Invalid Token'});
-    }
-  });
-  //#endregion
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
+  }
+});
+//#endregion
 
 //#region User Accounts
-  app.post('/login', async function (req, res) {
-    try {
-      let connection = await operationalDB.getConnection();
-      const { username, password } = req.body;
-    
-      // Hash the input password using SHA256
-      const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
-    
-      // Query the database
-      const result = await connection.execute(
-        `select users.USER_ID USER_ID,
+app.post('/login', async function (req, res) {
+  try {
+    let connection = await operationalDB.getConnection();
+    const { username, password } = req.body;
+
+    // Hash the input password using SHA256
+    const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+    // Query the database
+    const result = await connection.execute(
+      `select users.USER_ID USER_ID,
         users.USERNAME USERNAME,
         users.PASSWORD PASSWORD,
         users.NAME NAME,
@@ -536,95 +620,95 @@ app.get('/ping', function (req, res) {
         roles.ROLE_NAME ROLE_NAME from users
         inner join roles on roles.role_id = users.role_id
         WHERE users.USERNAME=:username AND users.PASSWORD=:hashedInputPassword`,
-        {username, hashedInputPassword},
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-      );
-    
-      if (result.rows.length > 0) {
-        var user = result.rows[0];
-        // User found
-    
-        // Create a JWT token and send it to the client along with the user details
-        payload = {
-          iss: 'datawarehouseapi.dylanwarrell.com',
-          sub: user.USERNAME,
-          role_id: user.ROLE_ID
-        };
-        // Create a new user object without the password hash
-        const userWithoutPassword = {
-          USER_ID: user.USER_ID,
-          USERNAME: user.USERNAME,
-          NAME: user.NAME,
-          ROLE_ID: user.ROLE_ID,
-          ROLE_NAME: user.ROLE_NAME
-        };
-        console.log(`User ${user.USERNAME} logged in successfully`);
-        res.status(200).json({
-          user: userWithoutPassword,
-          token: jwt.sign(payload, process.env.JWTSECRET, {expiresIn: '1h'})
-        });
-      } else {
-        // User not found or invalid password
-        console.log(`Login failed for username: ${username}`);
-        res.status(401).json({status: 'error', message: 'Invalid username or password'});
-      }
-      connection.release();
-    } catch(err) {
-      res.status(500).json({status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.'});
+      { username, hashedInputPassword },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+    );
+
+    if (result.rows.length > 0) {
+      var user = result.rows[0];
+      // User found
+
+      // Create a JWT token and send it to the client along with the user details
+      payload = {
+        iss: 'datawarehouseapi.dylanwarrell.com',
+        sub: user.USERNAME,
+        role_id: user.ROLE_ID
+      };
+      // Create a new user object without the password hash
+      const userWithoutPassword = {
+        USER_ID: user.USER_ID,
+        USERNAME: user.USERNAME,
+        NAME: user.NAME,
+        ROLE_ID: user.ROLE_ID,
+        ROLE_NAME: user.ROLE_NAME
+      };
+      console.log(`User ${user.USERNAME} logged in successfully`);
+      res.status(200).json({
+        user: userWithoutPassword,
+        token: jwt.sign(payload, process.env.JWTSECRET, { expiresIn: '1h' })
+      });
+    } else {
+      // User not found or invalid password
+      console.log(`Login failed for username: ${username}`);
+      res.status(401).json({ status: 'error', message: 'Invalid username or password' });
     }
-  });
-  
-  
-
-  app.post('/new-password', async function (req, res) {
-    try {
-        // Check for a valid token and get the username of the authenticated user
-        const token = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWTSECRET);
-        const username = decoded.sub;
-
-        // Establish a database connection
-        let connection = await operationalDB.getConnection();
-
-        try {
-            const { password } = req.body;
-
-            // Hash the new password using SHA256
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-            // Update the password hash in the database
-            const result = await connection.execute(
-                `UPDATE USERS SET PASSWORD=:hashedPassword WHERE USERNAME=:username`,
-                {
-                    hashedPassword: { val: hashedPassword, type: oracledb.STRING },
-                    username: { val: username, type: oracledb.STRING }
-                }
-            );
-
-            // Commit the transaction
-            connection.commit();
-
-            // Respond with the result
-            console.log(`Password changed for username: ${username}`);
-            res.status(200).json(result);
-        } catch (updateError) {
-            // Handle database update error
-            console.warn('Error updating password:', updateError);
-            res.status(500).json({ status: 'error', message: 'Failed to update password. Please try again later. Contact University of Gloucestershire IT Support if the database remains inaccessible.' });
-        } finally {
-            // Release the database connection
-            connection.release();
-        }
-    } catch (tokenError) {
-        // Handle invalid token error
-        console.warn('Invalid token:', tokenError);
-        res.status(401).json({ status: 'error', message: 'Invalid Token' });
-    }
+    connection.release();
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.' });
+  }
 });
 
-  
-  
-  //#endregion 
+
+
+app.post('/new-password', async function (req, res) {
+  try {
+    // Check for a valid token and get the username of the authenticated user
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWTSECRET);
+    const username = decoded.sub;
+
+    // Establish a database connection
+    let connection = await operationalDB.getConnection();
+
+    try {
+      const { password } = req.body;
+
+      // Hash the new password using SHA256
+      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+      // Update the password hash in the database
+      const result = await connection.execute(
+        `UPDATE USERS SET PASSWORD=:hashedPassword WHERE USERNAME=:username`,
+        {
+          hashedPassword: { val: hashedPassword, type: oracledb.STRING },
+          username: { val: username, type: oracledb.STRING }
+        }
+      );
+
+      // Commit the transaction
+      connection.commit();
+
+      // Respond with the result
+      console.log(`Password changed for username: ${username}`);
+      res.status(200).json(result);
+    } catch (updateError) {
+      // Handle database update error
+      console.warn('Error updating password:', updateError);
+      res.status(500).json({ status: 'error', message: 'Failed to update password. Please try again later. Contact University of Gloucestershire IT Support if the database remains inaccessible.' });
+    } finally {
+      // Release the database connection
+      connection.release();
+    }
+  } catch (tokenError) {
+    // Handle invalid token error
+    console.warn('Invalid token:', tokenError);
+    res.status(401).json({ status: 'error', message: 'Invalid Token' });
+  }
+});
+
+
+
+//#endregion 
 
 // START APP
 app.listen(port, () => {

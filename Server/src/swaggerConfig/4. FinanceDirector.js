@@ -3,49 +3,33 @@
  * tags:
  *   name: Finance Director
  *   description: Queries for the Finance Director
- * /FineSumByDate:
+ * /FineSumByDate/{year}/{timeframe}/{value}:
  *   get:
  *     security:
  *       - Bearer: []
  *     summary: Lists the issued fines, sorted by amount, for the selected timeframe.
  *     tags: [Finance Director]
  *     parameters:
+ *       - name: year
+ *         in: path
+ *         description: Year to query.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
  *       - name: timeframe
- *         in: query
- *         description: Select either 'month' or 'week'.
+ *         in: path
+ *         description: Timeframe to query.
  *         required: true
  *         schema:
  *           type: string
- *           enum: [month, week]
- *       - name: year
- *         in: query
- *         description: The year for which to retrieve data.
+ *           enum: [Year, Quarter, Month, Week]
+ *       - name: value
+ *         in: path
+ *         description: The value of the timeframe (If selecting "Year", the values must match). E.G. 2023 for Year, 2 for Quarter, June for Month, 24 for Week.
  *         required: true
  *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 2018
- *           maximum: 2024
- *       - name: month
- *         in: query
- *         description: The month (1 to 12) for which to retrieve data.
- *         required: true
- *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 1
- *           maximum: 12
- *       - name: week
- *         in: query
- *         description: The week number (1 to 52) for which to retrieve data.
- *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 1
- *           maximum: 52
- *         required:
- *           - name: timeframe
- *             value: week
+ *           type: string
  *     responses:
  *       200:
  *         description: List of fines.
@@ -57,49 +41,33 @@
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
  *         description: Unauthorised. Access token required.
- * /LateFineSumByDate:
+ * /LateFineSumByDate/{year}/{timeframe}/{value}:
  *   get:
  *     security:
  *       - Bearer: []
  *     summary: Calculates the sum of fines for late returns in the selected timeframe.
  *     tags: [Finance Director]
  *     parameters:
+ *       - name: year
+ *         in: path
+ *         description: Year to query.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int32
  *       - name: timeframe
- *         in: query
- *         description: Select either 'month' or 'week'.
+ *         in: path
+ *         description: Timeframe to query.
  *         required: true
  *         schema:
  *           type: string
- *           enum: [month, week]
- *       - name: year
- *         in: query
- *         description: The year for which to retrieve data.
+ *           enum: [Year, Quarter, Month, Week]
+ *       - name: value
+ *         in: path
+ *         description: The value of the timeframe (If selecting "Year", the values must match). E.G. 2023 for Year, 2 for Quarter, June for Month, 24 for Week.
  *         required: true
  *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 2018
- *           maximum: 2024
- *       - name: month
- *         in: query
- *         description: The month (1 to 12) for which to retrieve data.
- *         required: true
- *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 1
- *           maximum: 12
- *       - name: week
- *         in: query
- *         description: The week number (1 to 52) for which to retrieve data.
- *         schema:
- *           type: integer
- *           format: int32
- *           minimum: 1
- *           maximum: 52
- *         required:
- *           - name: timeframe
- *             value: week
+ *           type: string
  *     responses:
  *       200:
  *         description: Sum of the fines.
