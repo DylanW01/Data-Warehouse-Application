@@ -82,26 +82,6 @@ app.get('/ping', function (req, res) {
   res.status(200).json({status: 'success', message: 'pong'});
   });
 
-  app.get('/ping-database', async (req, res) => {
-    try {
-      let connection = await operationalDB.getConnection();
-      connection.execute(
-        "SELECT 'OK' AS Result FROM dual",
-        {}, // no bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          res.status(200).json(result.rows); // only return rows
-        }
-      );
-    } catch (err) {
-      res.status(500).json({ status: 'error', message: 'An error occurred while connecting to the database' });
-    }
-  });
-
 //#region Operational DB Queries
   app.get('/users', async function (req, res) {
     try {
