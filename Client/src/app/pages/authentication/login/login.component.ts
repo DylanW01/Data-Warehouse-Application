@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { Router } from "@angular/router";
 import { DataAccessService } from "src/app/services/data-access.service";
 
 @Component({
@@ -11,7 +12,7 @@ export class AppSideLoginComponent {
   loginError: string | null = null;
   loginSuccess: boolean = false;
 
-  constructor(private api: DataAccessService) {}
+  constructor(private api: DataAccessService, private router: Router) {}
 
   login() {
     const credentials = {
@@ -24,9 +25,10 @@ export class AppSideLoginComponent {
       .then((response: unknown) => {
         // Handle successful response
         console.log("Login successful:", response);
-        this.api.setCookie("session_token", (response as { token: string })["token"]);
+        this.api.setCookieToken((response as { token: string })["token"]);
         this.loginSuccess = true;
         this.loginError = null;
+        this.router.navigate(["/dashboard"]);
       })
       .catch((error: any) => {
         // Handle error
