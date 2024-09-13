@@ -284,35 +284,49 @@ app.get('/ping', function (req, res) {
 
   app.post('/new-password', async function (req, res) {
     try {
-      // check for valid token and get the username of the authenticated user
-      var token = req.headers.authorization.split(' ')[1];
-      var decoded = jwt.verify(token, process.env.JWTSECRET);
-      const username = decoded.sub
-      let connection = await operationalDB.getConnection();
-      const { password } = req.body;
-  
-      // Hash the new password using SHA256
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-    
-      // Update the password hash in the database
-      const result = await connection.execute(
-        `UPDATE USERS SET PASSWORD=:hashedPassword WHERE USERNAME=:username`,
-        {
-          hashedPassword: {val: hashedPassword, type: oracledb.STRING},
-          username: {val: username, type: oracledb.STRING}
+        // Check for a valid token and get the username of the authenticated user
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWTSECRET);
+        const username = decoded.sub;
+
+        // Establish a database connection
+        let connection = await operationalDB.getConnection();
+
+        try {
+            const { password } = req.body;
+
+            // Hash the new password using SHA256
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+            // Update the password hash in the database
+            const result = await connection.execute(
+                `UPDATE USERS SET PASSWORD=:hashedPassword WHERE USERNAME=:username`,
+                {
+                    hashedPassword: { val: hashedPassword, type: oracledb.STRING },
+                    username: { val: username, type: oracledb.STRING }
+                }
+            );
+
+            // Commit the transaction
+            connection.commit();
+
+            // Respond with the result
+            res.status(200).json(result);
+        } catch (updateError) {
+            // Handle database update error
+            console.warn('Error updating password:', updateError);
+            res.status(500).json({ status: 'error', message: 'Failed to update password. Please try again later. Contact University of Gloucestershire IT Support if the database remains inaccessible.' });
+        } finally {
+            // Release the database connection
+            connection.release();
         }
-      );
-      connection.commit();
-      res.status(200).json(result);
-      connection.release();
-    } catch(err) {
-      if(err instanceof jwt.JsonWebTokenError) {
-        res.status(401).json({status: 'error', message: 'Invalid Token'});
-      } else {
-        res.status(500).json({status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.'});
-      }
+    } catch (tokenError) {
+        // Handle invalid token error
+        console.warn('Invalid token:', tokenError);
+        res.status(401).json({ status: 'error', message: 'Invalid Token' });
     }
-  });
+});
+
   
   
   //#endregion 
