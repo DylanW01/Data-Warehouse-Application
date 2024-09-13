@@ -971,21 +971,16 @@ app.post('/new-password', async function (req, res) {
       // Hash the new password using SHA256
       const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-      // Update the password hash in the database
-      const result = await connection.execute(
-        `UPDATE USERS SET PASSWORD=:hashedPassword WHERE USERNAME=:username`,
+      await connection.execute(
+        `BEGIN change_password(:username, :hashedPassword); END;`,
         {
-          hashedPassword: { val: hashedPassword, type: oracledb.STRING },
-          username: { val: username, type: oracledb.STRING }
+          username: { val: username, type: oracledb.STRING },
+          hashedPassword: { val: hashedPassword, type: oracledb.STRING }
         }
       );
 
-      // Commit the transaction
-      connection.commit();
-
-      // Respond with the result
       console.log(`Password changed for username: ${username}`);
-      res.status(200).json(result);
+      res.status(200).json({ status: 'success', message: `Password changed for username: ${username}` });
     } catch (updateError) {
       // Handle database update error
       console.warn('Error updating password:', updateError);
@@ -1000,8 +995,6 @@ app.post('/new-password', async function (req, res) {
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
-
-
 
 //#endregion 
 
