@@ -13,23 +13,33 @@ const appVersion = require("../package.json").version;
 //#region DB Setup - Create connection to database - Uses .env file for credentials
 let warehouseDB;
 async function initializeWarehouseDB() {
-  const pool = await oracledb.createPool({
-    user: process.env.DBUSER,
-    password: process.env.DBPASS,
-    connectString: process.env.CONNECTIONSTR
-  });
-  warehouseDB = pool;
+  try {
+    const pool = await oracledb.createPool({
+      user: process.env.DBUSER,
+      password: process.env.DBPASS,
+      connectString: process.env.CONNECTIONSTR
+    });
+    warehouseDB = pool;
+  } catch (err) {
+    console.error('Failed to create pool for warehouseDB', err);
+    process.exit(0);
+  }
 }
 initializeWarehouseDB();
 
 let operationalDB;
 async function initializeOperationalDB() {
-  const pool = await oracledb.createPool({
-    user: process.env.DBUSEROP,
-    password: process.env.DBPASSOP,
-    connectString: process.env.CONNECTIONSTR
-  });
-  operationalDB = pool;
+  try {
+    const pool = await oracledb.createPool({
+      user: process.env.DBUSEROP,
+      password: process.env.DBPASSOP,
+      connectString: process.env.CONNECTIONSTR
+    });
+    operationalDB = pool;
+  } catch (err) {
+    console.error('Failed to create pool for operationalDB', err);
+    process.exit(0);
+  }
 }
 initializeOperationalDB();
 
@@ -217,53 +227,57 @@ app.get('/ping', function (req, res) {
 
   //#region User Accounts
   app.post('/login', async function (req, res) {
-    let connection = await operationalDB.getConnection();
-    const { username, password } = req.body;
-  
-    // Hash the input password using SHA256
-    const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
-  
-    // Query the database
-    const result = await connection.execute(
-      `select users.USER_ID USER_ID,
-      users.USERNAME USERNAME,
-      users.PASSWORD PASSWORD,
-      users.NAME NAME,
-      users.ROLE_ID ROLE_ID,
-      roles.ROLE_NAME ROLE_NAME from users
-      inner join roles on roles.role_id = users.role_id
-      WHERE users.USERNAME=:username AND users.PASSWORD=:hashedInputPassword`,
-      {username, hashedInputPassword},
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-    );
-  
-    if (result.rows.length > 0) {
-      var user = result.rows[0];
-      // User found
-  
-      // Create a JWT token and send it to the client along with the user details
-      payload = {
-        iss: 'localhost',
-        sub: user.USERNAME,
-        role_id: user.ROLE_ID
-      };
-      // Create a new user object without the password hash
-      const userWithoutPassword = {
-        USER_ID: user.USER_ID,
-        USERNAME: user.USERNAME,
-        NAME: user.NAME,
-        ROLE_ID: user.ROLE_ID,
-        ROLE_NAME: user.ROLE_NAME
-      };
-      res.status(200).json({
-        user: userWithoutPassword,
-        token: jwt.sign(payload, process.env.JWTSECRET, {expiresIn: '1h'})
-      });
-    } else {
-      // User not found or invalid password
-      res.status(401).json({status: 'error', message: 'Invalid username or password'});
+    try {
+      let connection = await operationalDB.getConnection();
+      const { username, password } = req.body;
+    
+      // Hash the input password using SHA256
+      const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
+    
+      // Query the database
+      const result = await connection.execute(
+        `select users.USER_ID USER_ID,
+        users.USERNAME USERNAME,
+        users.PASSWORD PASSWORD,
+        users.NAME NAME,
+        users.ROLE_ID ROLE_ID,
+        roles.ROLE_NAME ROLE_NAME from users
+        inner join roles on roles.role_id = users.role_id
+        WHERE users.USERNAME=:username AND users.PASSWORD=:hashedInputPassword`,
+        {username, hashedInputPassword},
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      );
+    
+      if (result.rows.length > 0) {
+        var user = result.rows[0];
+        // User found
+    
+        // Create a JWT token and send it to the client along with the user details
+        payload = {
+          iss: 'localhost',
+          sub: user.USERNAME,
+          role_id: user.ROLE_ID
+        };
+        // Create a new user object without the password hash
+        const userWithoutPassword = {
+          USER_ID: user.USER_ID,
+          USERNAME: user.USERNAME,
+          NAME: user.NAME,
+          ROLE_ID: user.ROLE_ID,
+          ROLE_NAME: user.ROLE_NAME
+        };
+        res.status(200).json({
+          user: userWithoutPassword,
+          token: jwt.sign(payload, process.env.JWTSECRET, {expiresIn: '1h'})
+        });
+      } else {
+        // User not found or invalid password
+        res.status(401).json({status: 'error', message: 'Invalid username or password'});
+      }
+      connection.release();
+    } catch(err) {
+      res.status(500).json({status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.'});
     }
-    connection.release();
   });
   
   
@@ -292,9 +306,14 @@ app.get('/ping', function (req, res) {
       res.status(200).json(result);
       connection.release();
     } catch(err) {
-      res.status(401).json({status: 'error', message: 'Invalid Token'});
+      if(err instanceof jwt.JsonWebTokenError) {
+        res.status(401).json({status: 'error', message: 'Invalid Token'});
+      } else {
+        res.status(500).json({status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.'});
+      }
     }
   });
+  
   
   //#endregion 
 
