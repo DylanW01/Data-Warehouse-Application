@@ -78,6 +78,221 @@ const swaggerSpec = swaggerJSDoc(options);
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 //#endregion
 
+//#region Finance Director Queries
+app.get('/FineSumByDate', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+
+app.get('/LateFineSumByDate', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+//#endregion
+
+//#region Chief Librarian Queries
+app.get('/PopularBooksByMonth', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+
+app.get('/ActiveCoursesByMonth', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+
+app.get('/LatestStudentsByQuarter', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+//#endregion
+
+//#region Departmental Heads Queries
+app.get('/MostPopularBooksByGenre', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+
+app.get('/MostActiveStudentsByMonth', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+//#endregion
+
+//#region Vice Chancellor Queries
+app.get('/MostActiveDepartmentByMonth', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+
+app.get('/TotalIncomeFromFinesByDate', async function (req, res) {
+  try {
+    var token = req.headers.authorization.split(' ')[1];
+    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    let connection = await warehouseDB.getConnection();
+    connection.execute(
+      ``,
+      {}, // no bind variables
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
+        res.status(200).json(result.rows); // only return rows
+      }
+    );
+    connection.release();
+  } catch(err) {
+    res.status(401).json({status: 'error', message: 'Invalid Token'});
+  }
+});
+//#endregion
+
 app.get('/ping', function (req, res) {
   res.status(200).json({status: 'success', message: 'pong'});
   });
@@ -235,7 +450,7 @@ app.get('/ping', function (req, res) {
   });
   //#endregion
 
-  //#region User Accounts
+//#region User Accounts
   app.post('/login', async function (req, res) {
     try {
       let connection = await operationalDB.getConnection();
