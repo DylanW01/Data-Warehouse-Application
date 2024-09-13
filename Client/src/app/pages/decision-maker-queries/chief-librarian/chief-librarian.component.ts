@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { MatTableDataSource } from "@angular/material/table";
+import { Title } from "@angular/platform-browser";
+import { ActivatedRoute } from "@angular/router";
 import { DataAccessService } from "src/app/services/data-access.service";
 
 @Component({
@@ -28,7 +30,12 @@ export class AppChiefLibrarianComponent {
   dataSource1 = new MatTableDataSource<any>();
   displayedColumns1: string[] = ["title", "author", "late"];
 
-  constructor(private api: DataAccessService) {}
+  constructor(private api: DataAccessService, private titleService: Title, private route: ActivatedRoute) {
+    this.route.data.subscribe((data) => {
+      const pageTitle = data["title"] || "Dashboard"; // Default title if no data provided
+      this.titleService.setTitle(`${pageTitle} | Data Warehouse App`);
+    });
+  }
 
   // GetPopularBooksByMonth
 

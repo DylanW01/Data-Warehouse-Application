@@ -1,12 +1,12 @@
-import { Routes } from '@angular/router';
-import { AppDashboardComponent } from './dashboard/dashboard.component';
+import { Routes } from "@angular/router";
+import { AppDashboardComponent } from "./dashboard/dashboard.component";
 
 export const PagesRoutes: Routes = [
   {
-    path: '',
+    path: "",
     component: AppDashboardComponent,
     data: {
-      title: 'Starter Page',
+      title: "Dashboard",
     },
   },
 ];
