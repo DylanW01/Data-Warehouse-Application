@@ -14,9 +14,9 @@
     <a href="#getting-started"><strong>Setup instructions »</strong></a>
     <br />
     <br />
-    <a href="https://datawarehouse.dylanwarrell.com">Open Test Site</a>
+    <a href="https://datawarehouse.dylanwarrell.com">Production Site</a>
     ·
-    <a href="https://datawarehouseapi.dylanwarrell.com/swagger">Open API Testing Site</a>
+    <a href="https://datawarehouseapi.dylanwarrell.com/swagger">API Testing Site</a>
     ·
     <a href="https://github.com/DylanW01/Data-Warehouse-Application/issues">Report a Problem</a>
   </p>
