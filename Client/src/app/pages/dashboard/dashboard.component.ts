@@ -243,7 +243,6 @@ export class AppDashboardComponent implements OnInit {
       .catch((error) => {
         console.error("Error fetching data:", error);
         console.log("An error occurred. Please try again later.");
-        alert(error.error.message);
       });
   }
 
