@@ -43,8 +43,7 @@
 <!-- ABOUT THE PROJECT -->
 
 ## About The Project
-
-<img src="https://github.com/DylanW01/Data-Warehouse-Application/assets/124311289/2bfb79f1-051b-45c5-b127-5f0423c9954f" alt="Preview of the admin dashboard" border="0">
+<img src="https://github.com/DylanW01/Data-Warehouse-Application/assets/124311289/c35a2570-c19d-4b5d-b7c1-136f9e9c2a47" alt="Preview of the admin dashboard" border="0">
 
 This dashboard allows key decision-makers to access reports from the data warehouse. Each logged-in user has access to a predefined set of queries/reports.
 
