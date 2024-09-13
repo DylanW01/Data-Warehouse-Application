@@ -1,3 +1,4 @@
+import { environment } from "src/environments/environment";
 import { NavItem } from "./nav-item/nav-item";
 
 export const navItems: NavItem[] = [
@@ -44,7 +45,7 @@ export const navItems: NavItem[] = [
   {
     displayName: "API Testing",
     iconName: "settings",
-    route: "https://datawarehouseapi.dylanwarrell.com/swagger",
+    route: environment.serverUrl + "/swagger",
     external: true,
   },
   {
