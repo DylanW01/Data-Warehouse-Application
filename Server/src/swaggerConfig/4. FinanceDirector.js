@@ -1,5 +1,17 @@
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     financeDirectorResponse:
+ *       type: object
+ *       properties:
+ *         Total_Fine:
+ *           type: string
+ *           example: "£5"
+ */
+
+/**
+ * @swagger
  * tags:
  *   name: Finance Director
  *   description: Queries for the Finance Director
@@ -7,7 +19,7 @@
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Lists the issued fines, sorted by amount, for the selected timeframe.
+ *     summary: Returns the sum of the fines issued, for the selected timeframe.
  *     tags: [Finance Director]
  *     parameters:
  *       - name: year
@@ -36,7 +48,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/financeDirectorResponse'
  *       403:
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:
@@ -45,7 +57,7 @@
  *   get:
  *     security:
  *       - Bearer: []
- *     summary: Calculates the sum of fines for late returns in the selected timeframe.
+ *     summary: Returns the sum of the fines issued which are late/outstanding for the selected timeframe.
  *     tags: [Finance Director]
  *     parameters:
  *       - name: year
@@ -74,7 +86,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: array
+ *               $ref: '#/components/schemas/financeDirectorResponse'
  *       403:
  *         description: Unauthorised. User does not have permissions to call this query.
  *       401:

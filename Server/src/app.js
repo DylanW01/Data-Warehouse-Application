@@ -189,7 +189,7 @@ app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) 
             console.error(err.message);
             return;
           }
-          //console.log(`/LateFineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          console.log(`/LateFineSumByDate endpoint called successfully by username: ${decoded.sub}`);
           const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
           res.status(200).json({ Total_Fine: "£" + totalFine });
         }
@@ -210,7 +210,7 @@ app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) 
             console.error(err.message);
             return;
           }
-          //console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
+          console.log(`/FineSumByDate endpoint called successfully by username: ${decoded.sub}`);
           const totalFine = result.rows[0]?.TOTAL_FINE || 0; // Extract the total fine amount
           res.status(200).json({ Total_Fine: "£" + totalFine });
         }
