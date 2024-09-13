@@ -3,31 +3,29 @@
  * components:
  *   schemas:
  *     MostActiveDepartmentByMonthResponse:
- *       type: array
- *       items:
- *         type: object
- *         properties:
- *           COURSE_ID:
- *             type: integer
- *           COURSE_NAME:
- *             type: string
- *           NUMBER_OF_LOANS:
- *             type: integer
- *           NUMBER_OF_FINES:
- *             type: integer
- *         example:
- *           - COURSE_ID: 2
- *             COURSE_NAME: Computer Science
- *             NUMBER_OF_LOANS: 4
- *             NUMBER_OF_FINES: 0
- *           - COURSE_ID: 7
- *             COURSE_NAME: Chemistry
- *             NUMBER_OF_LOANS: 5
- *             NUMBER_OF_FINES: 0
- *           - COURSE_ID: 4
- *             COURSE_NAME: Physics
- *             NUMBER_OF_LOANS: 5
- *             NUMBER_OF_FINES: 2
+ *       type: object
+ *       properties:
+ *         COURSE_ID:
+ *           type: integer
+ *         COURSE_NAME:
+ *           type: string
+ *         NUMBER_OF_LOANS:
+ *           type: integer
+ *         NUMBER_OF_FINES:
+ *           type: integer
+ *       example:
+ *         - COURSE_ID: 2
+ *           COURSE_NAME: Computer Science
+ *           NUMBER_OF_LOANS: 4
+ *           NUMBER_OF_FINES: 0
+ *         - COURSE_ID: 7
+ *           COURSE_NAME: Chemistry
+ *           NUMBER_OF_LOANS: 5
+ *           NUMBER_OF_FINES: 0
+ *         - COURSE_ID: 4
+ *           COURSE_NAME: Physics
+ *           NUMBER_OF_LOANS: 5
+ *           NUMBER_OF_FINES: 2
  */
 
 /**
