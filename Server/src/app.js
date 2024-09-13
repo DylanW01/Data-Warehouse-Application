@@ -1068,8 +1068,8 @@ async function fetchAllRowsFromRS(resultSet) {
         } else if (rows.length > 0) {
           rows.forEach(row => {
             let rowWithColumnNames = {};
-            columnNames.forEach((name, i) => {
-              rowWithColumnNames[name] = row[i];
+            columnNames.forEach((name) => {
+              rowWithColumnNames[name] = row[name];
             });
             rowsWithColumnNames.push(rowWithColumnNames);
           });
