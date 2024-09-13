@@ -686,52 +686,56 @@ app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', async function (r
       return; // Exit early if validation fails
     }
 
-    if (timeframe == 'Year') {
-      // Handle the case when timeframe is "Year"
-      connection.execute(
-        `SELECT COUNT(DISTINCT l.loan_id) AS number_of_loans,
-        SUM(CASE WHEN l.fine_paid_date IS NOT NULL THEN l.fine_amount ELSE 0 END) AS total_fines_income
-        FROM Fact_Loans l
-        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
-        WHERE d.Year = :year`,
-        { year: year }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows[0]);
+    connection.execute(
+      `BEGIN get_total_income(:p_year, :p_timeframe, :p_value, :p_cursor); END;`,
+      {
+        p_year: year,
+        p_timeframe: timeframe,
+        p_value: value,
+        p_cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+      (err, result) => {
+        if (err) {
+          console.error(err.message);
+          return;
         }
-      );
-    } else {
-      // Handle other timeframes (Quarter, Month, Week)
-      connection.execute(
-        `SELECT COUNT(DISTINCT l.loan_id) AS number_of_loans,
-        SUM(CASE WHEN l.fine_paid_date IS NOT NULL THEN l.fine_amount ELSE 0 END) AS total_fines_income
-        FROM Fact_Loans l
-        JOIN Dim_Date d ON l.returned_on_date = d.DateKey
-        WHERE UPPER(d.${timeframe}) = UPPER(:value)
-        AND d.Year = :year`,
-        { year: year, value: value }, // bind variables
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }, // query result format
-        (err, result) => {
-          if (err) {
-            console.error(err.message);
-            return;
-          }
-          console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
-          res.status(200).json(result.rows[0]);
-        }
-      );
-    }
-    connection.release();
+        fetchRowsFromRS(connection, result.outBinds.p_cursor, decoded, res);
+      }
+    );
   } catch (err) {
     console.error(err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
+
+function fetchRowsFromRS(connection, resultSet, decoded, res) {
+  resultSet.getRows(100, (err, rows) => {
+    if (err) {
+      console.error(err);
+      return;
+    } else if (rows.length === 0) { // no rows, or no more rows
+      resultSet.close(function (err) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        connection.release(function (err) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+        });
+      });
+    } else if (rows.length > 0) {
+      console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
+      res.status(200).json(rows[0]);
+      fetchRowsFromRS(connection, resultSet, decoded, res); // get next set of rows
+    }
+  });
+}
+
+
 //#endregion
 
 app.get('/ping', function (req, res) {
@@ -926,7 +930,6 @@ app.post('/login', async function (req, res) {
         name: row.NAME,
         role_id: row.ROLE_ID
       };
-      console.log(row);
       // Create a new user object without the password hash
       const userWithoutPassword = {
         USER_ID: row.USER_ID,
