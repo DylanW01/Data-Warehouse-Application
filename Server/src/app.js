@@ -855,7 +855,6 @@ app.post('/login', async function (req, res) {
 
     // Hash the input password using SHA256
     const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
-    console.log('Hashed password:', hashedInputPassword);
 
     // Query the database for the user
     let rows;
@@ -926,12 +925,10 @@ app.post('/new-password', async function (req, res) {
       // Hash the new password using SHA256
       const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
+      // Call the stored procedure to change the password
       await connection.execute(
-        `BEGIN change_password(:username, :hashedPassword); END;`,
-        {
-          username: { val: username, type: oracledb.STRING },
-          hashedPassword: { val: hashedPassword, type: oracledb.STRING }
-        }
+        `CALL change_password(?, ?)`,
+        [username, hashedPassword]
       );
 
       console.log(`Password changed for username: ${username}`);
