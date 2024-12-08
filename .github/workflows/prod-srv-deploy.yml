@@ -4,13 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "server/**"
-  pull_request:
-    branches:
-      - main
-    types: [closed]
-    paths:
-      - "server/**"
+      - "Server/**"
 
 jobs:
   deploy:
