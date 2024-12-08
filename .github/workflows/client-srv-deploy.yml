@@ -5,6 +5,12 @@ on:
     branches: [main]
     paths:
       - "client/**"
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+    paths:
+      - "client/**"
 
 jobs:
   deploy:
