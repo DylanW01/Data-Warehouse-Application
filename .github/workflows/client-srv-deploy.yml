@@ -1,0 +1,21 @@
+name: Update Web-App Deployments
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "client/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Render Deployment
+        uses: Bounceapp/render-action@0.8.0
+        with:
+          render-token: ${{ secrets.RENDER_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          service-id: srv-co06jeq1hbls73br17hg
+          retries: 20
+          wait: 16000
+          sleep: 30000

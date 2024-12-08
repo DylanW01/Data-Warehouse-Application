@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const oracledb = require('oracledb');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 var jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -11,37 +11,13 @@ const appVersion = require("../package.json").version;
 
 
 //#region DB Setup - Create connection to database - Uses .env file for credentials
-let warehouseDB;
-async function initializeWarehouseDB() {
-  try {
-    const pool = await oracledb.createPool({
-      user: process.env.DBUSER,
-      password: process.env.DBPASS,
-      connectString: process.env.CONNECTIONSTR
-    });
-    warehouseDB = pool;
-  } catch (err) {
-    console.error('Failed to create pool for warehouseDB', err);
-    process.exit(0);
-  }
-}
-initializeWarehouseDB();
-
-let operationalDB;
-async function initializeOperationalDB() {
-  try {
-    const pool = await oracledb.createPool({
-      user: process.env.DBUSEROP,
-      password: process.env.DBPASSOP,
-      connectString: process.env.CONNECTIONSTR
-    });
-    operationalDB = pool;
-  } catch (err) {
-    console.error('Failed to create pool for operationalDB', err);
-    process.exit(0);
-  }
-}
-initializeOperationalDB();
+var warehouseDB  = mysql.createPool({
+  connectionLimit : 10,
+  host       : process.env.DBHOST,
+  user       : process.env.DBUSER,
+  password   : process.env.DBPASS,
+  database   : process.env.DBNAME
+});
 
 const port = process.env.PORT || 8080;
 //#endregion
@@ -708,7 +684,7 @@ app.get('/users', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
-    let connection = await operationalDB.getConnection();
+    let connection = await warehouseDB.getConnection();
     connection.execute(
       `SELECT u.USER_ID USER_ID,
         u.FIRST_NAME FIRST_NAME,
@@ -739,7 +715,7 @@ app.get('/books', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
-    let connection = await operationalDB.getConnection();
+    let connection = await warehouseDB.getConnection();
     connection.execute(
       `SELECT b.BOOK_ID BOOK_ID,
         b.TITLE TITLE,
@@ -773,7 +749,7 @@ app.get('/fines', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
-    let connection = await operationalDB.getConnection();
+    let connection = await warehouseDB.getConnection();
     connection.execute(
       `SELECT f.FINE_AMOUNT FINE_AMOUNT,
         f.FINE_DATE FINE_DATE,
@@ -821,7 +797,7 @@ app.get('/loans', async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
-    let connection = await operationalDB.getConnection();
+    let connection = await warehouseDB.getConnection();
     connection.execute(
       `SELECT l.LOAN_ID LOAN_ID,
       l.RETURN_BY BOOK_RETURN_BY,
@@ -863,29 +839,45 @@ app.get('/loans', async function (req, res) {
 //#region User Accounts
 app.post('/login', async function (req, res) {
   try {
-    let connection = await operationalDB.getConnection();
+    console.log('Received login request');
     const { username, password } = req.body;
+    console.log('Username:', username);
+
+    let connection;
+    try {
+      connection = await warehouseDB.getConnection();
+      console.log('Database connection established');
+    } catch (connErr) {
+      console.error('Failed to establish database connection:', connErr);
+      res.status(500).json({ status: 'error', message: 'Database connection failed' });
+      return;
+    }
 
     // Hash the input password using SHA256
     const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-    // Call the stored procedure
-    const result = await connection.execute(
-      `BEGIN GET_USER(:username, :hashedInputPassword, :cursor); END;`,
-      {
-        username,
-        hashedInputPassword,
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
-      },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+    // Query the database for the user
+    let rows;
+    try {
+      [rows] = await connection.execute(
+        `SELECT u.USER_ID, u.USERNAME, u.NAME, u.ROLE_ID, r.ROLE_NAME FROM users u INNER JOIN roles r ON u.role_id = r.role_id WHERE USERNAME = ? AND PASSWORD = ?`,
+        [username, hashedInputPassword]
+      );
+      console.log('Database query executed');
+    } catch (queryErr) {
+      console.error('Error executing database query:', queryErr);
+      res.status(500).json({ status: 'error', message: 'Database query failed' });
+      connection.release();
+      return;
+    }
 
-    const resultSet = result.outBinds.cursor;
-    let row;
-    if ((row = await resultSet.getRow())) {
+    if (rows.length > 0) {
       // User found
+      const row = rows[0];
+      console.log('User found:', row);
+
       // Create a JWT token and send it to the client along with the user details
-      payload = {
+      const payload = {
         iss: 'datawarehouseapi.dylanwarrell.com',
         sub: row.USERNAME,
         name: row.NAME,
@@ -909,9 +901,9 @@ app.post('/login', async function (req, res) {
       console.log(`Login failed for username: ${username}`);
       res.status(401).json({ status: 'error', message: 'Invalid username or password' });
     }
-    resultSet.close();
     connection.release();
   } catch (err) {
+    console.error('Error during login:', err);
     res.status(500).json({ status: 'error', message: 'Database is unavailable. Contact University of Gloucestershire IT Support.' });
   }
 });
@@ -925,7 +917,7 @@ app.post('/new-password', async function (req, res) {
     const username = decoded.sub;
 
     // Establish a database connection
-    let connection = await operationalDB.getConnection();
+    let connection = await warehouseDB.getConnection();
 
     try {
       const { password } = req.body;
@@ -933,12 +925,10 @@ app.post('/new-password', async function (req, res) {
       // Hash the new password using SHA256
       const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
+      // Call the stored procedure to change the password
       await connection.execute(
-        `BEGIN change_password(:username, :hashedPassword); END;`,
-        {
-          username: { val: username, type: oracledb.STRING },
-          hashedPassword: { val: hashedPassword, type: oracledb.STRING }
-        }
+        `CALL change_password(?, ?)`,
+        [username, hashedPassword]
       );
 
       console.log(`Password changed for username: ${username}`);
@@ -958,7 +948,7 @@ app.post('/new-password', async function (req, res) {
   }
 });
 
-//#endregion 
+//#endregion
 
 //#region Dashboard queries
 app.get('/dashboardSummary', async function (req, res) {
@@ -1083,7 +1073,7 @@ async function fetchAllRowsFromRS(resultSet) {
 
 
 
-//#endregion 
+//#endregion
 
 // START APP
 app.listen(port, () => {
