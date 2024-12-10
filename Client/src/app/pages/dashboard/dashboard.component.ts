@@ -77,7 +77,7 @@ export class AppDashboardComponent implements OnInit {
     });
     //#region loanFineOverviewChart
     this.loanFineOverviewChart = {
-      series: [2024],
+      series: [null],
       grid: {
         borderColor: "rgba(0,0,0,0.1)",
         strokeDashArray: 3,
@@ -112,7 +112,7 @@ export class AppDashboardComponent implements OnInit {
       yaxis: {
         show: true,
         min: 0,
-        max: 15,
+        max: 350,
         tickAmount: 4,
         labels: {
           style: {
@@ -146,7 +146,6 @@ export class AppDashboardComponent implements OnInit {
     //#region quarterly breakup chart
     this.yearlyChart = {
       series: [],
-
       chart: {
         type: "donut",
         fontFamily: "'Plus Jakarta Sans', sans-serif;",
@@ -257,26 +256,31 @@ export class AppDashboardComponent implements OnInit {
     this.loanFineOverviewChart.series = [
       {
         name: "Loans this month",
-        data: this.loansAndFines.map((item) => item.NUMBEROFLOANS),
+        data: this.loansAndFines.map((item) => item.NumberOfLoans),
         color: "#5D87FF",
       },
       {
         name: "Fines this month",
-        data: this.loansAndFines.map((item) => item.NUMBEROFFINES),
+        data: this.loansAndFines.map((item) => item.NumberOfFines),
         color: "#49BEFF",
       },
     ];
 
-    this.loanFineOverviewChart = { ...this.loanFineOverviewChart, xaxis: { type: "datetime", categories: this.loansAndFines.map((item) => item.MONTH) } };
+    this.loanFineOverviewChart = { ...this.loanFineOverviewChart, xaxis: { type: "datetime", categories: this.loansAndFines.map((item) => item.Month) } };
 
     // Update the 'quarterlyChart' data
-    this.yearlyChart.series = this.quarterlyFineIncome.map((item) => item.TOTALFINEINCOME).reverse();
+    this.yearlyChart.series = this.quarterlyFineIncome.map((item) => parseFloat(item.TotalFineIncome)).reverse() ?? [];
+
     let quarterlyFineIncomeLength = this.quarterlyFineIncome.length;
-    this.currentQuarter = "Q" + this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].QUARTER + "-" + String(this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].YEAR).slice(-2);
-    this.lastQuarter = "Q" + this.quarterlyFineIncome[quarterlyFineIncomeLength - 2].QUARTER + "-" + String(this.quarterlyFineIncome[quarterlyFineIncomeLength - 2].YEAR).slice(-2);
-    this.fineQuarterIncome = this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].TOTALFINEINCOME;
-    let finesTotalThisQuarter = this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].TOTALFINEINCOME;
-    let finesTotalLastQuarter = this.quarterlyFineIncome[quarterlyFineIncomeLength - 2].TOTALFINEINCOME;
+
+    // Format the quarter strings
+    this.currentQuarter = this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].Quarter.replace(/^(\d{4})-(Q\d)$/, "$2-$1").replace(/(\d{2})(\d{2})/, "$1");
+    this.lastQuarter = this.quarterlyFineIncome[quarterlyFineIncomeLength - 2].Quarter.replace(/^(\d{4})-(Q\d)$/, "$2-$1").replace(/(\d{2})(\d{2})/, "$1");
+
+    // Ensure TotalFineIncome is treated as a float
+    this.fineQuarterIncome = parseFloat(this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].TotalFineIncome);
+    let finesTotalThisQuarter = parseFloat(this.quarterlyFineIncome[quarterlyFineIncomeLength - 1].TotalFineIncome);
+    let finesTotalLastQuarter = parseFloat(this.quarterlyFineIncome[quarterlyFineIncomeLength - 2].TotalFineIncome);
     let finesQuarterChange = ((finesTotalThisQuarter - finesTotalLastQuarter) / finesTotalLastQuarter) * 100;
     this.fineQuarterChangeDirection = finesQuarterChange >= 0 ? "up" : "down";
     this.finesQuarterChangePercentage = (finesQuarterChange >= 0 ? "+" : "") + finesQuarterChange.toFixed(0) + "%";
@@ -286,12 +290,21 @@ export class AppDashboardComponent implements OnInit {
       {
         name: "£",
         color: "#49BEFF",
-        data: this.fineIncome.map((item) => item.TOTALFINEINCOME),
+        data: this.fineIncome.map((item) => parseFloat(item.TotalFineIncome)) ?? [],
       },
     ];
+
     let fineIncomeLength = this.fineIncome.length;
-    this.finesTotalThisMonth = this.fineIncome[fineIncomeLength - 1].TOTALFINEINCOME.toFixed(2);
-    let finesTotalLastMonth = this.fineIncome[fineIncomeLength - 2].TOTALFINEINCOME.toFixed(2);
+    let totalFineIncome = parseFloat(this.fineIncome[fineIncomeLength - 1].TotalFineIncome);
+
+    if (!isNaN(totalFineIncome)) {
+      this.finesTotalThisMonth = totalFineIncome;
+    } else {
+      console.error("TotalFineIncome is not a number:", totalFineIncome);
+      this.finesTotalThisMonth = 0;
+    }
+
+    let finesTotalLastMonth = parseFloat(this.fineIncome[fineIncomeLength - 2].TotalFineIncome);
     let finesChange = ((this.finesTotalThisMonth - finesTotalLastMonth) / finesTotalLastMonth) * 100;
     this.fineChangeDirection = finesChange >= 0 ? "up" : "down";
     this.finesChangePercentage = (finesChange >= 0 ? "+" : "") + finesChange.toFixed(0) + "%";

@@ -1,6 +1,6 @@
 {
   "name": "warehousedb-server",
-  "version": "v.2024-12-18",
+  "version": "v.2024-12-10",
   "description": "",
   "main": "src/app.js",
   "scripts": {
