@@ -542,137 +542,85 @@ app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum
 //#region Vice Chancellor Queries
 app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async function (req, res) {
   try {
-    var token = req.headers.authorization.split(' ')[1];
-    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWTSECRET);
+
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 1 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /MostActiveDepartmentByMonth. Role ID: ${decoded.role_id}`);
-      res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account` });
+      res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account.` });
       return;
     }
-    let connection = await warehouseDB.getConnection();
-    let year = req.params.year;
-    let timeframe = req.params.timeframe;
-    let value = req.params.value;
-    let fetchnum = req.params.fetchnum;
 
-    // Validate timeframe
-    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
-    if (!allowedTimeframes.includes(timeframe)) {
-      console.log(`/MostActiveDepartmentByMonth endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
-      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
-      return; // Exit early if validation fails
+    let connection;
+    try {
+      connection = await warehouseDB.getConnection();
+      const { year, timeframe, value, fetchnum } = req.params;
+
+      // Execute the stored procedure using async/await
+      const [rows] = await connection.query(
+        `CALL get_most_active_department_by_month(?, ?, ?, ?)`,
+        [year, timeframe, value, fetchnum]
+      );
+
+      console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
+      res.status(200).json(rows[0] || {});
+    } catch (queryErr) {
+      console.error('Error executing database query:', queryErr);
+      res.status(500).json({ status: 'error', message: 'Database query failed' });
+    } finally {
+      if (connection) connection.release();
     }
-
-    // Create a cursor to hold the result
-    let p_cursor = { type: oracledb.CURSOR, dir: oracledb.BIND_OUT };
-
-    // Execute the stored procedure
-    let result = await connection.execute(
-      `BEGIN get_most_active_department_by_month(:p_year, :p_timeframe, :p_value, :p_fetchnum, :p_cursor); END;`,
-      {
-        p_year: year,
-        p_timeframe: timeframe,
-        p_value: value,
-        p_fetchnum: fetchnum,
-        p_cursor: p_cursor
-      },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    // Fetch rows from the result set
-    let resultSet = result.outBinds.p_cursor;
-    let rows = [];
-    let row;
-    while ((row = await resultSet.getRow())) {
-      rows.push(row);
-    }
-
-    // Close the result set and connection
-    await resultSet.close();
-    await connection.close();
-
-    console.log(`/MostActiveDepartmentByMonth endpoint called successfully by username: ${decoded.sub}`);
-    res.status(200).json(rows);
   } catch (err) {
-    console.log(err);
+    console.error('Error processing request:', err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
 
 app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', async function (req, res) {
   try {
-    var token = req.headers.authorization.split(' ')[1];
-    var decoded = jwt.verify(token, process.env.JWTSECRET);
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWTSECRET);
+
     // Check if decoded.role_id is equal to role for RBAC
     if (decoded.role_id !== 1 && decoded.role_id !== 5) {
       console.log(`Access denied for user ${decoded.sub} at /TotalIncomeFromFinesByDate. Role ID: ${decoded.role_id}`);
       res.status(403).json({ status: 'error', message: `Access denied for user ${decoded.sub}. Make sure you are logged into the right account.` });
       return;
     }
-    let connection = await warehouseDB.getConnection();
-    let year = req.params.year;
-    let timeframe = req.params.timeframe;
-    let value = req.params.value;
 
-    // Validate timeframe
-    const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
-    if (!allowedTimeframes.includes(timeframe)) {
-      console.log(`/TotalIncomeFromFinesByDate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
-      res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
-      return; // Exit early if validation fails
-    }
+    let connection;
+    try {
+      connection = await warehouseDB.getConnection();
+      const { year, timeframe, value } = req.params;
 
-    connection.execute(
-      `BEGIN get_total_income(:p_year, :p_timeframe, :p_value, :p_cursor); END;`,
-      {
-        p_year: year,
-        p_timeframe: timeframe,
-        p_value: value,
-        p_cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
-      },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT },
-      (err, result) => {
-        if (err) {
-          console.error(err.message);
-          return;
-        }
-        fetchRowsFromRS(connection, result.outBinds.p_cursor, decoded, res);
+      // Validate timeframe
+      const allowedTimeframes = ['Year', 'Quarter', 'Month', 'Week'];
+      if (!allowedTimeframes.includes(timeframe)) {
+        console.log(`/TotalIncomeFromFinesByDate endpoint blocked due to invalid timeframe by username: ${decoded.sub}`);
+        res.status(400).json({ status: 'error', message: 'Invalid timeframe' });
+        return; // Exit early if validation fails
       }
-    );
+
+      // Execute the stored procedure using async/await
+      const [rows] = await connection.query(
+        `CALL get_total_income(?, ?, ?)`,
+        [year, timeframe, value]
+      );
+
+      console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
+      res.status(200).json(rows[0] || {});
+    } catch (queryErr) {
+      console.error('Error executing database query:', queryErr);
+      res.status(500).json({ status: 'error', message: 'Database query failed' });
+    } finally {
+      if (connection) connection.release();
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Error processing request:', err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
-
-function fetchRowsFromRS(connection, resultSet, decoded, res) {
-  resultSet.getRows(100, (err, rows) => {
-    if (err) {
-      console.error(err);
-      return;
-    } else if (rows.length === 0) { // no rows, or no more rows
-      resultSet.close(function (err) {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        connection.release(function (err) {
-          if (err) {
-            console.error(err);
-            return;
-          }
-        });
-      });
-    } else if (rows.length > 0) {
-      console.log(`/TotalIncomeFromFinesByDate endpoint called successfully by username: ${decoded.sub}`);
-      res.status(200).json(rows[0]);
-      fetchRowsFromRS(connection, resultSet, decoded, res); // get next set of rows
-    }
-  });
-}
-
-
 //#endregion
 
 app.get('/ping', function (req, res) {
