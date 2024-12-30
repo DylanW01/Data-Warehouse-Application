@@ -75,7 +75,7 @@ export class AppViceChancellorComponent {
         .getTotalIncomeFromFinesByDate(this.year1.value, this.timeframe1, this.value1.value)
         .then((dataresponse: unknown) => {
           this.returnedData1 = dataresponse as any;
-          this.dataSource1.data = [this.returnedData1];
+          this.dataSource1.data = this.returnedData1;
         })
         .catch((error) => {
           console.error("Error fetching data:", error);
