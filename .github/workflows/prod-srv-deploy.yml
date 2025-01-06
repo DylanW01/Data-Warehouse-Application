@@ -7,7 +7,7 @@ on:
       - "Server/**"
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
