@@ -15,7 +15,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
-    "express-bearer-token": "^2.4.0",
+    "express-bearer-token": "^3.0.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.5",
     "nodemon": "^3.1.0",
