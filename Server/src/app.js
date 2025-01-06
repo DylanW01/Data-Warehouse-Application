@@ -8,6 +8,8 @@ require('dotenv').config();
 var jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const appVersion = require("../package.json").version;
+const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcrypt');
 
 
 //#region DB Setup - Create connection to database - Uses .env file for credentials
@@ -26,6 +28,13 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(express.json())
+
+// Define a rate limiter for the /TotalIncomeFromFinesByDate route
+const rateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { status: 'error', message: 'Too many requests, please try again later.' }
+});
 
 //#region Swagger setup
 const swaggerDefinition = {
@@ -51,11 +60,15 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
-app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    defaultModelsExpandDepth: 0
+  }
+}));
 //#endregion
 
 //#region Finance Director Queries
-app.get('/FineSumByDate/:year/:timeframe/:value', async function (req, res) {
+app.get('/FineSumByDate/:year/:timeframe/:value', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -105,7 +118,7 @@ app.get('/FineSumByDate/:year/:timeframe/:value', async function (req, res) {
   }
 });
 
-app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) {
+app.get('/LateFineSumByDate/:year/:timeframe/:value', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -180,7 +193,7 @@ app.get('/LateFineSumByDate/:year/:timeframe/:value', async function (req, res) 
 //#endregion
 
 //#region Chief Librarian Queries
-app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', async function (req, res) {
+app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -268,7 +281,7 @@ app.get('/PopularBooksByMonth/:course_id/:year/:timeframe/:value/:fetchnum', asy
   }
 });
 
-app.get('/BooksReturnedLate/:year/:timeframe/:value/:fetchnum', async function (req, res) {
+app.get('/BooksReturnedLate/:year/:timeframe/:value/:fetchnum', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -354,7 +367,7 @@ app.get('/BooksReturnedLate/:year/:timeframe/:value/:fetchnum', async function (
 //#endregion
 
 //#region Departmental Heads Queries
-app.get('/MostPopularBooksByPageCount/:year/:timeframe/:value/:fetchnum/:pagecount/:operator', async function (req, res) {
+app.get('/MostPopularBooksByPageCount/:year/:timeframe/:value/:fetchnum/:pagecount/:operator', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -450,7 +463,7 @@ app.get('/MostPopularBooksByPageCount/:year/:timeframe/:value/:fetchnum/:pagecou
   }
 });
 
-app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum', async function (req, res) {
+app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum', rateLimiter, async function (req, res) {
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -540,7 +553,7 @@ app.get('/MostActiveStudentsByMonth/:course_id/:year/:timeframe/:value/:fetchnum
 //#endregion
 
 //#region Vice Chancellor Queries
-app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async function (req, res) {
+app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', rateLimiter, async function (req, res) {
   try {
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -577,7 +590,7 @@ app.get('/MostActiveDepartmentByMonth/:year/:timeframe/:value/:fetchnum', async 
   }
 });
 
-app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', async function (req, res) {
+app.get('/TotalIncomeFromFinesByDate/:year/:timeframe/:value', rateLimiter, async function (req, res) {
   try {
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -628,7 +641,9 @@ app.get('/ping', function (req, res) {
 });
 
 //#region Operational DB Queries
-app.get('/users', async function (req, res) {
+app.get('/users', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -659,7 +674,9 @@ app.get('/users', async function (req, res) {
   }
 });
 
-app.get('/books', async function (req, res) {
+app.get('/books', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -693,7 +710,9 @@ app.get('/books', async function (req, res) {
   }
 });
 
-app.get('/fines', async function (req, res) {
+app.get('/fines', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -741,7 +760,9 @@ app.get('/fines', async function (req, res) {
   }
 });
 
-app.get('/loans', async function (req, res) {
+app.get('/loans', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -785,7 +806,7 @@ app.get('/loans', async function (req, res) {
 //#endregion
 
 //#region User Accounts
-app.post('/login', async function (req, res) {
+app.post('/login', rateLimiter, async function (req, res) {
   try {
     console.log('Received login request');
     const { username, password } = req.body;
@@ -801,17 +822,13 @@ app.post('/login', async function (req, res) {
       return;
     }
 
-    // Hash the input password using SHA256
-    const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
-
     // Query the database for the user
     let rows;
     try {
       [rows] = await connection.execute(
-        `SELECT u.USER_ID, u.USERNAME, u.NAME, u.ROLE_ID, r.ROLE_NAME FROM users u INNER JOIN roles r ON u.role_id = r.role_id WHERE USERNAME = ? AND PASSWORD = ?`,
-        [username, hashedInputPassword]
+        `SELECT u.USER_ID, u.USERNAME, u.NAME, u.PASSWORD, u.ROLE_ID, r.ROLE_NAME FROM users u INNER JOIN roles r ON u.role_id = r.role_id WHERE USERNAME = ?`,
+        [username]
       );
-      console.log('Database query executed');
     } catch (queryErr) {
       console.error('Error executing database query:', queryErr);
       res.status(500).json({ status: 'error', message: 'Database query failed' });
@@ -823,6 +840,44 @@ app.post('/login', async function (req, res) {
       // User found
       const row = rows[0];
       console.log('User found:', row);
+
+      let passwordMatch = false;
+
+      // Check if the stored password is hashed with SHA-256 or bcrypt
+      if (row.PASSWORD.length === 64) {
+        // SHA-256 hash length is 64 characters
+        const sha256Hash = crypto.createHash('sha256').update(password).digest('hex');
+        if (sha256Hash === row.PASSWORD) {
+          // Password matches, rehash with bcrypt
+          const saltRounds = 10;
+          const bcryptHash = await bcrypt.hash(password, saltRounds);
+
+          // Update the password in the database with the bcrypt hash
+          try {
+            await connection.execute(
+              `UPDATE users SET PASSWORD = ? WHERE USER_ID = ?`,
+              [bcryptHash, row.USER_ID]
+            );
+            console.log(`Password for user ${username} rehashed with bcrypt and updated in the database`);
+            passwordMatch = true;
+          } catch (updateErr) {
+            console.error('Error updating password in the database:', updateErr);
+            res.status(500).json({ status: 'error', message: 'Failed to update password' });
+            connection.release();
+            return;
+          }
+        }
+      } else {
+        // Assume it's a bcrypt hash
+        passwordMatch = await bcrypt.compare(password, row.PASSWORD);
+      }
+
+      if (!passwordMatch) {
+        console.log(`Login failed for username: ${username}`);
+        res.status(401).json({ status: 'error', message: 'Invalid username or password' });
+        connection.release();
+        return;
+      }
 
       // Create a JWT token and send it to the client along with the user details
       const payload = {
@@ -845,7 +900,7 @@ app.post('/login', async function (req, res) {
         token: jwt.sign(payload, process.env.JWTSECRET, { expiresIn: '1h' })
       });
     } else {
-      // User not found or invalid password
+      // User not found
       console.log(`Login failed for username: ${username}`);
       res.status(401).json({ status: 'error', message: 'Invalid username or password' });
     }
@@ -856,33 +911,38 @@ app.post('/login', async function (req, res) {
   }
 });
 
-
-app.post('/new-password', async function (req, res) {
+app.post('/new-password', rateLimiter, async function (req, res) {
   try {
-    // Check for a valid token and get the username of the authenticated user
+    // Extract and verify the token
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
     const username = decoded.sub;
 
     // Establish a database connection
-    let connection = await warehouseDB.getConnection();
-
+    let connection;
     try {
-      const { password } = req.body;
+      connection = await warehouseDB.getConnection();
+      console.log('Database connection established');
+    } catch (connErr) {
+      console.error('Failed to establish database connection:', connErr);
+      res.status(500).json({ status: 'error', message: 'Database connection failed' });
+      return;
+    }
 
-      // Hash the new password using SHA256
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    // Hash the new password using bcrypt
+    const { password } = req.body;
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Call the stored procedure to change the password
+    // Call the stored procedure to change the password
+    try {
       await connection.execute(
         `CALL change_password(?, ?)`,
         [username, hashedPassword]
       );
-
       console.log(`Password changed for username: ${username}`);
       res.status(200).json({ status: 'success', message: `Password changed for username: ${username}` });
     } catch (updateError) {
-      // Handle database update error
       console.warn('Error updating password:', updateError);
       res.status(500).json({ status: 'error', message: 'Failed to update password. Please try again later. Contact University of Gloucestershire IT Support if the database remains inaccessible.' });
     } finally {
@@ -890,7 +950,6 @@ app.post('/new-password', async function (req, res) {
       connection.release();
     }
   } catch (tokenError) {
-    // Handle invalid token error
     console.warn('Invalid token:', tokenError);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
@@ -899,12 +958,22 @@ app.post('/new-password', async function (req, res) {
 //#endregion
 
 //#region Dashboard queries
-app.get('/dashboardSummary', async function (req, res) {
+app.get('/dashboardSummary', rateLimiter, async function (req, res) {
   try {
+    // Extract and verify the token
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
 
-    let connection = await warehouseDB.getConnection();
+    // Establish a database connection
+    let connection;
+    try {
+      connection = await warehouseDB.getConnection();
+      console.log('Database connection established');
+    } catch (connErr) {
+      console.error('Failed to establish database connection:', connErr);
+      res.status(500).json({ status: 'error', message: 'Database connection failed' });
+      return;
+    }
 
     try {
       // Execute the stored procedures using async/await
@@ -925,10 +994,11 @@ app.get('/dashboardSummary', async function (req, res) {
       console.error('Error executing database query:', queryErr);
       res.status(500).json({ status: 'error', message: 'Database query failed' });
     } finally {
+      // Release the database connection
       connection.release();
     }
   } catch (err) {
-    console.log(err);
+    console.warn('Invalid token or other error:', err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });

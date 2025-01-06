@@ -6,12 +6,16 @@ on:
     paths:
       - "Client/**"
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for Render Deployment
-        uses: Bounceapp/render-action@0.8.0
+        uses: Bounceapp/render-action@330fe789041953f3f0847cf83d038be962037ab7
         with:
           render-token: ${{ secrets.RENDER_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
