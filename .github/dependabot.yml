@@ -9,7 +9,11 @@ updates:
     directory: "Client"
     schedule:
       interval: "weekly"
+    groups:
+      all: {}
   - package-ecosystem: "npm"
     directory: "Server"
     schedule:
       interval: "weekly"
+    groups:
+      all: {}
