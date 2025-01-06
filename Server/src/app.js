@@ -60,7 +60,11 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
-app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    defaultModelsExpandDepth: 0
+  }
+}));
 //#endregion
 
 //#region Finance Director Queries
