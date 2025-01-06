@@ -3,6 +3,8 @@ name: Update Web-App Deployments
 on:
   push:
     branches: [main]
+    paths:
+      - "Client/**"
 
 permissions:
   contents: read

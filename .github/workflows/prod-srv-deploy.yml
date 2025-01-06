@@ -3,6 +3,8 @@ name: Update API Deployments
 on:
   push:
     branches: [main]
+    paths:
+      - "Server/**"
 
 permissions:
   contents: read
