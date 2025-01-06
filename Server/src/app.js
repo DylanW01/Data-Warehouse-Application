@@ -711,7 +711,7 @@ app.get('/books', rateLimiter, async function (req, res) {
 });
 
 app.get('/fines', rateLimiter, async function (req, res) {
-res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
   return;
   try {
     var token = req.headers.authorization.split(' ')[1];
@@ -913,30 +913,36 @@ app.post('/login', rateLimiter, async function (req, res) {
 
 app.post('/new-password', rateLimiter, async function (req, res) {
   try {
-    // Check for a valid token and get the username of the authenticated user
+    // Extract and verify the token
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
     const username = decoded.sub;
 
     // Establish a database connection
-    let connection = await warehouseDB.getConnection();
-
+    let connection;
     try {
-      const { password } = req.body;
+      connection = await warehouseDB.getConnection();
+      console.log('Database connection established');
+    } catch (connErr) {
+      console.error('Failed to establish database connection:', connErr);
+      res.status(500).json({ status: 'error', message: 'Database connection failed' });
+      return;
+    }
 
-      // Hash the new password using SHA256
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    // Hash the new password using bcrypt
+    const { password } = req.body;
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Call the stored procedure to change the password
+    // Call the stored procedure to change the password
+    try {
       await connection.execute(
         `CALL change_password(?, ?)`,
         [username, hashedPassword]
       );
-
       console.log(`Password changed for username: ${username}`);
       res.status(200).json({ status: 'success', message: `Password changed for username: ${username}` });
     } catch (updateError) {
-      // Handle database update error
       console.warn('Error updating password:', updateError);
       res.status(500).json({ status: 'error', message: 'Failed to update password. Please try again later. Contact University of Gloucestershire IT Support if the database remains inaccessible.' });
     } finally {
@@ -944,7 +950,6 @@ app.post('/new-password', rateLimiter, async function (req, res) {
       connection.release();
     }
   } catch (tokenError) {
-    // Handle invalid token error
     console.warn('Invalid token:', tokenError);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
@@ -955,10 +960,20 @@ app.post('/new-password', rateLimiter, async function (req, res) {
 //#region Dashboard queries
 app.get('/dashboardSummary', rateLimiter, async function (req, res) {
   try {
+    // Extract and verify the token
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWTSECRET);
 
-    let connection = await warehouseDB.getConnection();
+    // Establish a database connection
+    let connection;
+    try {
+      connection = await warehouseDB.getConnection();
+      console.log('Database connection established');
+    } catch (connErr) {
+      console.error('Failed to establish database connection:', connErr);
+      res.status(500).json({ status: 'error', message: 'Database connection failed' });
+      return;
+    }
 
     try {
       // Execute the stored procedures using async/await
@@ -979,10 +994,11 @@ app.get('/dashboardSummary', rateLimiter, async function (req, res) {
       console.error('Error executing database query:', queryErr);
       res.status(500).json({ status: 'error', message: 'Database query failed' });
     } finally {
+      // Release the database connection
       connection.release();
     }
   } catch (err) {
-    console.log(err);
+    console.warn('Invalid token or other error:', err);
     res.status(401).json({ status: 'error', message: 'Invalid Token' });
   }
 });
