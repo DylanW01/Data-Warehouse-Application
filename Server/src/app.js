@@ -638,6 +638,8 @@ app.get('/ping', function (req, res) {
 
 //#region Operational DB Queries
 app.get('/users', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -669,6 +671,8 @@ app.get('/users', rateLimiter, async function (req, res) {
 });
 
 app.get('/books', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -703,6 +707,8 @@ app.get('/books', rateLimiter, async function (req, res) {
 });
 
 app.get('/fines', rateLimiter, async function (req, res) {
+res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
@@ -751,6 +757,8 @@ app.get('/fines', rateLimiter, async function (req, res) {
 });
 
 app.get('/loans', rateLimiter, async function (req, res) {
+  res.status(410).json({ status: 'error', message: 'This endpoint is deprecated and no longer available.' });
+  return;
   try {
     var token = req.headers.authorization.split(' ')[1];
     var decoded = jwt.verify(token, process.env.JWTSECRET);
