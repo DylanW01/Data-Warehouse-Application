@@ -8,12 +8,12 @@ updates:
   - package-ecosystem: "npm"
     directory: "Client"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       all: {}
   - package-ecosystem: "npm"
     directory: "Server"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       all: {}
