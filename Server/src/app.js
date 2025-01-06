@@ -1,15 +1,15 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const mysql = require('mysql2/promise');
-require('dotenv').config();
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const appVersion = require("../package.json").version;
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
+const appVersion = require("../package.json").version;
 
 
 //#region DB Setup - Create connection to database - Uses .env file for credentials
