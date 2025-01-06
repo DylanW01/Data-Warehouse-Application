@@ -3,9 +3,6 @@ name: Update Web-App Deployments
 on:
   push:
     branches: [main]
-    paths:
-      - "Client/**"
-  workflow_dispatch:
 
 permissions:
   contents: read
