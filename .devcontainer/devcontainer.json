@@ -1,0 +1,29 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "waitFor": "onCreateCommand",
+  "updateContentCommand": "npm install --prefix Client && npm install --prefix Server",
+  "postCreateCommand": "",
+  "postAttachCommand": {
+    "server": "npm start --prefix Client && npm run dev-server --prefix Server"
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "Client/README.md",
+        "Server/src/app.js"
+      ]
+    }
+  },
+  "portsAttributes": {
+    "4200": {
+      "label": "Client Application",
+      "onAutoForward": "openBrowser"
+    },
+    "8080": {
+      "label": "Server Swagger",
+      "onAutoForward": "openBrowser",
+      "url": "http://localhost:8080/swagger"
+    }
+  },
+  "forwardPorts": [4200, 8080]
+}
