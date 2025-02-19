@@ -1,25 +1,98 @@
-name: Update Web-App Deployments
+name: Deploy to Production
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
     paths:
-      - "Client/**"
-
-permissions:
-  contents: read
-  deployments: write
+      - 'Client/**'
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  install_and_build:
     runs-on: ubuntu-latest
+    name: Install Dependencies and Build
     steps:
-      - name: Wait for Render Deployment
-        uses: Bounceapp/render-action@330fe789041953f3f0847cf83d038be962037ab7
+      - name: Create GitHub Deployment
+        id: create_deployment
+        run: |
+          DEPLOYMENT_ID=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "main", "environment": "Production – Data Warehouse Application", "auto_merge": false, "required_contexts": []}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments | jq -r '.id')
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"state": "in_progress", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+          echo "::set-output name=deployment_id::$DEPLOYMENT_ID"
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
         with:
-          render-token: ${{ secrets.RENDER_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          service-id: srv-co06jeq1hbls73br17hg
-          retries: 20
-          wait: 16000
-          sleep: 30000
+          node-version: 20
+      - name: Git Checkout
+        uses: actions/checkout@v4
+      - name: Restore dependencies from Cache
+        uses: actions/cache@v4
+        with:
+          path: ./Client/node_modules
+          key: ${{ runner.OS }}-npm-${{ hashFiles('./Client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-npm-
+      - name: Install dependencies if missing/outdated
+        run: npm install --prefix ./Client/
+      - name: Build for production
+        run: npm run build-live --prefix ./Client/
+      - name: Archive production artifacts
+        run: tar -czf dist.tar.gz -C ./Client/ dist
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist.tar.gz
+          retention-days: 1
+    outputs:
+      deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
+
+  deploy:
+    needs: [install_and_build]
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Git Checkout
+        uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./Client/
+      - name: Extract build artifacts
+        run: tar -xzf ./Client/dist.tar.gz -C ./tapp-client/
+      - name: Deploy to production server
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./Client/dist/
+          server-dir: ./datawarehouse/
+      - name: Update Deployment Status - Success
+        if: success()
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"state": "success", "description": "Deployment successful", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
+      - name: Update Deployment Status - Failure
+        if: failure()
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"state": "failure", "description": "Deployment failed"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
