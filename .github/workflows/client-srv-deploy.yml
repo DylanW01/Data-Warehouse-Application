@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies if missing/outdated
         run: npm install --prefix ./Client/
       - name: Build for production
-        run: npm run build-live --prefix ./Client/
+        run: npm run build --prefix ./Client/
       - name: Archive production artifacts
         run: tar -czf dist.tar.gz -C ./Client/ dist
       - name: Upload build artifact
