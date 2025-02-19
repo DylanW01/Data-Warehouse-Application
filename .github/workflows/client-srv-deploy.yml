@@ -71,7 +71,7 @@ jobs:
           name: dist
           path: ./Client/
       - name: Extract build artifacts
-        run: tar -xzf ./Client/dist.tar.gz -C ./tapp-client/
+        run: tar -xzf ./Client/dist.tar.gz -C ./Client/
       - name: Deploy to production server
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
