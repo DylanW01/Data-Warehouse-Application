@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - 'Client/**'
+      - "Client/**"
   workflow_dispatch:
 
 jobs:
@@ -58,6 +58,9 @@ jobs:
     needs: [install_and_build]
     runs-on: ubuntu-latest
     name: Deploy
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4

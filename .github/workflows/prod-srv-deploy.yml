@@ -6,13 +6,12 @@ on:
     paths:
       - "Server/**"
 
-permissions:
-  contents: read
-  deployments: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - name: Wait for Render Deployment
         uses: Bounceapp/render-action@330fe789041953f3f0847cf83d038be962037ab7
