@@ -11,6 +11,9 @@ jobs:
   install_and_build:
     runs-on: ubuntu-latest
     name: Install Dependencies and Build
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - name: Create GitHub Deployment
         id: create_deployment
