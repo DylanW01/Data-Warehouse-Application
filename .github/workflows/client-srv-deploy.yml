@@ -28,7 +28,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"state": "in_progress", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
             https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
-          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          echo "::set-output name=deployment_id::$DEPLOYMENT_ID"
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
@@ -60,6 +60,7 @@ jobs:
   deploy:
     needs: [install_and_build]
     runs-on: ubuntu-latest
+    name: Deploy
     permissions:
       contents: read
       deployments: write
@@ -92,7 +93,7 @@ jobs:
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"state": "success", "description": "Deployment successful", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.deployment_id }}/statuses
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
       - name: Update Deployment Status - Failure
         if: failure()
         run: |
@@ -100,4 +101,4 @@ jobs:
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"state": "failure", "description": "Deployment failed"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.deployment_id }}/statuses
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
