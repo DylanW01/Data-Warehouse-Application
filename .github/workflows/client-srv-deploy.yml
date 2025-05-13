@@ -64,6 +64,9 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    environment:
+      name: prodution
+      url: 'datawarehouse.dylanwarrell.com'
     steps:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -86,19 +89,3 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./Client/dist/
           server-dir: ./datawarehouse/
-      - name: Update Deployment Status - Success
-        if: success()
-        run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"state": "success", "description": "Deployment successful", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
-      - name: Update Deployment Status - Failure
-        if: failure()
-        run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"state": "failure", "description": "Deployment failed"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ needs.install_and_build.outputs.deployment_id }}/statuses
