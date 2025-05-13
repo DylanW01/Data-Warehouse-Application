@@ -65,8 +65,8 @@ jobs:
       contents: read
       deployments: write
     environment:
-      name: prodution
-      url: 'datawarehouse.dylanwarrell.com'
+      name: 'Production – Data Warehouse Application'
+      url: 'https://datawarehouse.dylanwarrell.com'
     steps:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
