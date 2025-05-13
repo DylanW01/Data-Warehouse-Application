@@ -15,20 +15,6 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - name: Create GitHub Deployment
-        id: create_deployment
-        run: |
-          DEPLOYMENT_ID=$(curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"ref": "main", "environment": "Production – Data Warehouse Application", "auto_merge": false, "required_contexts": []}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments | jq -r '.id')
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"state": "in_progress", "environment_url": "https://datawarehouse.dylanwarrell.com"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
-          echo "::set-output name=deployment_id::$DEPLOYMENT_ID"
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
@@ -54,8 +40,6 @@ jobs:
           name: dist
           path: dist.tar.gz
           retention-days: 1
-    outputs:
-      deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
 
   deploy:
     needs: [install_and_build]
@@ -65,8 +49,8 @@ jobs:
       contents: read
       deployments: write
     environment:
-      name: 'Production – Data Warehouse Application'
-      url: 'https://datawarehouse.dylanwarrell.com'
+      name: 'Production: Angular SPA'
+      url: ${{ vars.SITE_URL }}
     steps:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -88,4 +72,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./Client/dist/
-          server-dir: ./datawarehouse/
+          server-dir: ${{ vars.SERVER_DIR }}
